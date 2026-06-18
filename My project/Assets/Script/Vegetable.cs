@@ -2,21 +2,17 @@ using UnityEngine;
 
 public class Vegetable : MonoBehaviour
 {
-    [Header("State")]
     public enum VegetableState { Alive, Flattened }
     private VegetableState currentState = VegetableState.Alive;
 
-    [Header("Movement")]
     [SerializeField] private float movementSpeed = 2f;
     [SerializeField] private float pauseTime = 1f;
     [SerializeField] private float moveDistance = 3f;
 
-    [Header("Area Confinement")]
     [SerializeField] private Collider2D confinementArea;
     [SerializeField] private Bounds confinementBounds;
     [SerializeField] private bool useConfinementBounds = true;
 
-    [Header("Animation")]
     [SerializeField] private Animator animator;
     [SerializeField] private string walkAnimationParam = "IsWalking";
     [SerializeField] private string flattenAnimationTrigger = "Flatten";

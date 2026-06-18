@@ -3,17 +3,14 @@ using UnityEngine.AI;
 
 public class Monster : MonoBehaviour
 {
-    [Header("Movement")]
     [SerializeField] private float movementSpeed = 5f;
     [SerializeField] private Transform targetVegetable;
     [SerializeField] private Vector3 fixedTargetPoint;
     [SerializeField] private bool useFixedTarget = false;
 
-    [Header("Animation")]
     [SerializeField] private Animator animator;
     [SerializeField] private string deathAnimationTrigger = "Death";
 
-    [Header("State")]
     private bool isAlive = true;
     private Rigidbody2D rb;
     private Vector2 movementDirection = Vector2.zero;
@@ -33,15 +30,24 @@ public class Monster : MonoBehaviour
         if (!isAlive) return;
 
         UpdateTargetVegetable();
+        if (targetVegetable == null)
+        {
+            rb.velocity = Vector2.zero;
+            return;
+        }
+
         Vector3 targetPosition = useFixedTarget ? fixedTargetPoint : targetVegetable.position;
-        
         movementDirection = (targetPosition - transform.position).normalized;
         rb.velocity = movementDirection * movementSpeed;
 
         // Flip sprite based on direction
         if (movementDirection.x != 0)
         {
-            GetComponent<SpriteRenderer>().flipX = movementDirection.x < 0;
+            SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.flipX = movementDirection.x < 0;
+            }
         }
     }
 
@@ -138,7 +144,7 @@ public class Monster : MonoBehaviour
     {
         if (animator == null) return 0.5f;
         
-        AnimatorClip[] clips = animator.runtimeAnimatorController.animationClips;
+        AnimationClip[] clips = animator.runtimeAnimatorController.animationClips;
         foreach (AnimationClip clip in clips)
         {
             if (clip.name == triggerName)

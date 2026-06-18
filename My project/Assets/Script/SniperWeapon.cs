@@ -5,12 +5,10 @@ using TMPro;
 
 public class SniperWeapon : MonoBehaviour
 {
-    [Header("Magazine")]
-    public int magazineSize = 5;
+    public int magazineSize = 10;
     [SerializeField]
-    private int currentAmmo = 5;
+    private int currentAmmo = 10;
 
-    [Header("UI")]
     public Text ammoText;
     public TMP_Text ammoTextTMP;
     public GameObject scopeOverlay;
@@ -23,11 +21,10 @@ public class SniperWeapon : MonoBehaviour
     public bool scopeCameraFollowsCursor = true;
     public float scopeCameraRayDistance = 50f;
     public Renderer weaponMeshRenderer;
-    public string scopeSpriteFolder = "ScopeImage";
+    public string scopeSpriteFolder = "mock_scope";
     public int scopeSpriteIndex = 0;
     public bool alwaysShowScope = true;
 
-    [Header("Scope & Zoom")]
     public float normalFOV = 60f;
     public float scopedFOV = 30f;
     public float minZoomFOV = 15f;
@@ -302,7 +299,7 @@ public class SniperWeapon : MonoBehaviour
     {
         path = path.Trim().Replace("\\", "/");
 
-        const string resourcesPrefix = "Assets/Resources/";
+        const string resourcesPrefix = "Assets/Art/Scope/";
         if (path.StartsWith(resourcesPrefix, System.StringComparison.OrdinalIgnoreCase))
         {
             path = path.Substring(resourcesPrefix.Length);

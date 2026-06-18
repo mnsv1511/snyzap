@@ -3,21 +3,16 @@ using System.Collections;
 
 public class SpawnManager : MonoBehaviour
 {
-    [Header("Prefabs")]
     [SerializeField] private GameObject monsterPrefab;
 
-    [Header("Spawn Settings")]
     [SerializeField] private float spawnPerimeterRadius = 15f;
     [SerializeField] private Vector2 spawnPerimeterCenter = Vector2.zero;
     [SerializeField] private float initialDelay = 5f;
 
-    [Header("Wave Settings")]
     [SerializeField] private float initialSpawnInterval = 2f;
     [SerializeField] private float waveDuration = 60f;
     [SerializeField] private float intervalDecreasePerWave = 0.2f;
-    [SerializeField] private int monstersPerSpawnIncrease = 1;I
 
-    [Header("Target")]
     [SerializeField] private Transform vegetableTarget;
     [SerializeField] private bool useFixedTarget = false;
     [SerializeField] private Vector3 fixedTargetPoint;
@@ -94,6 +89,10 @@ public class SpawnManager : MonoBehaviour
         {
             monsterScript.SetMovementSpeed(GetDifficultySpeed());
             monsterScript.SetTarget(vegetableTarget, fixedTargetPoint, useFixedTarget);
+        }
+        else
+        {
+            Debug.LogError("Spawned monster prefab does not contain a Monster script.", monsterInstance);
         }
 
         totalMonstersSpawned++;
