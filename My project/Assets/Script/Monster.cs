@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.AI;
 
 public class Monster : MonoBehaviour
 {
@@ -10,19 +9,28 @@ public class Monster : MonoBehaviour
 
     [SerializeField] private Animator animator;
     [SerializeField] private string deathAnimationTrigger = "Death";
+    [SerializeField] private AudioClip hitVoiceClip;
+    [SerializeField] [Range(0f, 1f)] private float hitVoiceVolume = 1f;
+    [SerializeField] private bool destroyImmediatelyOnHit = true;
 
     private bool isAlive = true;
     private Rigidbody2D rb;
+    private SpriteRenderer spriteRenderer;
     private Vector2 movementDirection = Vector2.zero;
 
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
+
         if (rb == null)
         {
             rb = gameObject.AddComponent<Rigidbody2D>();
         }
+
+        rb.bodyType = RigidbodyType2D.Dynamic;
         rb.gravityScale = 0;
+        rb.constraints = RigidbodyConstraints2D.FreezeRotation;
     }
 
     private void FixedUpdate()
@@ -30,7 +38,7 @@ public class Monster : MonoBehaviour
         if (!isAlive) return;
 
         UpdateTargetVegetable();
-        if (targetVegetable == null)
+        if (!useFixedTarget && targetVegetable == null)
         {
             rb.velocity = Vector2.zero;
             return;
@@ -40,45 +48,48 @@ public class Monster : MonoBehaviour
         movementDirection = (targetPosition - transform.position).normalized;
         rb.velocity = movementDirection * movementSpeed;
 
-        // Flip sprite based on direction
-        if (movementDirection.x != 0)
+        // Keep default orientation when moving right-to-left; flip only for left-to-right movement.
+        if (movementDirection.x != 0f && spriteRenderer != null)
         {
-            SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
-            if (spriteRenderer != null)
-            {
-                spriteRenderer.flipX = movementDirection.x < 0;
-            }
+            spriteRenderer.flipX = movementDirection.x > 0f;
         }
     }
 
     /// <summary>
-    /// Find the nearest vegetable if target is not assigned
+    /// Find the nearest vegetable if target is not assigned and not using a fixed point
     /// </summary>
     private void UpdateTargetVegetable()
     {
-        if (targetVegetable == null || !useFixedTarget)
+        if (useFixedTarget)
         {
-            Vegetable[] allVegetables = FindObjectsOfType<Vegetable>();
-            float minDistance = float.MaxValue;
-            Transform nearestVegetable = null;
+            return;
+        }
 
-            foreach (Vegetable veg in allVegetables)
+        if (targetVegetable != null)
+        {
+            return;
+        }
+
+        Vegetable[] allVegetables = FindObjectsOfType<Vegetable>();
+        float minDistance = float.MaxValue;
+        Transform nearestVegetable = null;
+
+        foreach (Vegetable veg in allVegetables)
+        {
+            if (veg.IsAlive)
             {
-                if (veg.IsAlive)
+                float distance = Vector3.Distance(transform.position, veg.transform.position);
+                if (distance < minDistance)
                 {
-                    float distance = Vector3.Distance(transform.position, veg.transform.position);
-                    if (distance < minDistance)
-                    {
-                        minDistance = distance;
-                        nearestVegetable = veg.transform;
-                    }
+                    minDistance = distance;
+                    nearestVegetable = veg.transform;
                 }
             }
+        }
 
-            if (nearestVegetable != null)
-            {
-                targetVegetable = nearestVegetable;
-            }
+        if (nearestVegetable != null)
+        {
+            targetVegetable = nearestVegetable;
         }
     }
 
@@ -91,6 +102,17 @@ public class Monster : MonoBehaviour
 
         isAlive = false;
         rb.velocity = Vector2.zero;
+
+        if (hitVoiceClip != null)
+        {
+            AudioSource.PlayClipAtPoint(hitVoiceClip, transform.position, hitVoiceVolume);
+        }
+
+        if (destroyImmediatelyOnHit)
+        {
+            Destroy(gameObject);
+            return;
+        }
 
         if (animator != null)
         {

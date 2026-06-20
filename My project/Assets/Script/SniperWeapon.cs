@@ -18,8 +18,6 @@ public class SniperWeapon : MonoBehaviour
     public Camera scopeCamera;
     public SpriteRenderer scopeOverlaySpriteRenderer;
     public SpriteRenderer weaponSpriteRenderer;
-    public bool scopeCameraFollowsCursor = true;
-    public float scopeCameraRayDistance = 50f;
     public Renderer weaponMeshRenderer;
     public string scopeSpriteFolder = "mock_scope";
     public int scopeSpriteIndex = 0;
@@ -30,12 +28,20 @@ public class SniperWeapon : MonoBehaviour
     public float minZoomFOV = 15f;
     public float maxZoomFOV = 40f;
     public float zoomSpeed = 5f;
+    public LayerMask monsterLayerMask = ~0;
+
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip shootClickSfx;
+    [SerializeField] private AudioClip emptyClickSfx;
+    [SerializeField] private AudioClip reloadSfx;
+    [SerializeField] [Range(0f, 1f)] private float sfxVolume = 1f;
 
     private Camera _camera;
     private bool _isScoped;
     private Sprite[] scopeSprites;
     private RectTransform _scopeOverlayRectTransform;
     private Canvas _scopeOverlayCanvas;
+    private const string AmmoTextFormat = "{0}/{1}";
 
     public int CurrentAmmo
     {
@@ -77,6 +83,11 @@ public class SniperWeapon : MonoBehaviour
 
         CurrentAmmo = currentAmmo;
         UpdateAmmoUI();
+
+        if (audioSource == null)
+        {
+            audioSource = GetComponent<AudioSource>();
+        }
     }
 
     private void InitializeScopeOverlayRectTransform()
@@ -153,14 +164,51 @@ public class SniperWeapon : MonoBehaviour
 
     private void Shoot()
     {
+        PlaySfx(shootClickSfx);
+
         if (CurrentAmmo <= 0)
         {
+            if (emptyClickSfx != null)
+            {
+                PlaySfx(emptyClickSfx);
+            }
             Debug.Log("SniperWeapon: No ammo. Press R to reload.");
             return;
         }
 
         CurrentAmmo--;
         Debug.Log($"SniperWeapon: Fired. Ammo left {CurrentAmmo}/{MagazineSize}");
+
+        Camera aimCamera = scopeCamera != null ? scopeCamera : (_camera != null ? _camera : Camera.main);
+        if (aimCamera == null)
+        {
+            return;
+        }
+
+        Vector2 mouseScreen = Mouse.current.position.ReadValue();
+        Vector2 worldPoint = aimCamera.ScreenToWorldPoint(new Vector3(mouseScreen.x, mouseScreen.y, Mathf.Abs(aimCamera.transform.position.z)));
+        Collider2D[] hits = Physics2D.OverlapPointAll(worldPoint, monsterLayerMask);
+
+        Monster hitMonster = null;
+        for (int i = 0; i < hits.Length; i++)
+        {
+            if (hits[i] == null)
+            {
+                continue;
+            }
+
+            Monster candidate = hits[i].GetComponentInParent<Monster>();
+            if (candidate != null && candidate.IsAlive)
+            {
+                hitMonster = candidate;
+                break;
+            }
+        }
+
+        if (hitMonster != null)
+        {
+            hitMonster.TakeHit();
+        }
 
     }
 
@@ -204,19 +252,38 @@ public class SniperWeapon : MonoBehaviour
     public void ReloadMagazine()
     {
         CurrentAmmo = MagazineSize;
+        PlaySfx(reloadSfx);
         Debug.Log($"SniperWeapon: Reloaded. Ammo {CurrentAmmo}/{MagazineSize}");
+    }
+
+    private void PlaySfx(AudioClip clip)
+    {
+        if (clip == null)
+        {
+            return;
+        }
+
+        if (audioSource != null)
+        {
+            audioSource.PlayOneShot(clip, sfxVolume);
+            return;
+        }
+
+        Vector3 soundPosition = _camera != null ? _camera.transform.position : transform.position;
+        AudioSource.PlayClipAtPoint(clip, soundPosition, sfxVolume);
     }
 
     private void UpdateAmmoUI()
     {
-        string text = $"Ammo: {CurrentAmmo}/{MagazineSize}";
+        string ammoTextValue = string.Format(AmmoTextFormat, CurrentAmmo, MagazineSize);
+
         if (ammoTextTMP != null)
         {
-            ammoTextTMP.text = text;
+            ammoTextTMP.text = ammoTextValue;
         }
         else if (ammoText != null)
         {
-            ammoText.text = text;
+            ammoText.text = ammoTextValue;
         }
     }
 
