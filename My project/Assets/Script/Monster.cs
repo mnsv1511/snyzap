@@ -105,7 +105,10 @@ public class Monster : MonoBehaviour
 
         if (hitVoiceClip != null)
         {
-            AudioSource.PlayClipAtPoint(hitVoiceClip, transform.position, hitVoiceVolume);
+            float scaledVolume = SettingManager.Instance != null
+                ? SettingManager.Instance.GetScaledSoundEffectVolume(hitVoiceVolume)
+                : hitVoiceVolume;
+            AudioSource.PlayClipAtPoint(hitVoiceClip, transform.position, scaledVolume);
         }
 
         if (destroyImmediatelyOnHit)

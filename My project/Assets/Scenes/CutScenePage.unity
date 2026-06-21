@@ -2372,6 +2372,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1739930288}
     - target: {fileID: 1327696980994256488, guid: f0b67bbd2bdc7e943af6bdbae558e74e, type: 3}
+      propertyPath: advanceMode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1327696980994256488, guid: f0b67bbd2bdc7e943af6bdbae558e74e, type: 3}
       propertyPath: 'pages.Array.data[0]'
       value: 
       objectReference: {fileID: 117678132}

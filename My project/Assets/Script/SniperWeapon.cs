@@ -88,6 +88,19 @@ public class SniperWeapon : MonoBehaviour
         {
             audioSource = GetComponent<AudioSource>();
         }
+
+        if (SettingManager.Instance != null && audioSource != null)
+        {
+            SettingManager.Instance.RegisterSoundEffectSource(audioSource);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (SettingManager.Instance != null && audioSource != null)
+        {
+            SettingManager.Instance.UnregisterSoundEffectSource(audioSource);
+        }
     }
 
     private void InitializeScopeOverlayRectTransform()
@@ -109,6 +122,11 @@ public class SniperWeapon : MonoBehaviour
 
     private void Update()
     {
+        if (SettingManager.IsOpen)
+        {
+            return;
+        }
+
         HandleShootInput();
         HandleScopeInput();
         HandleZoomInput();
@@ -263,14 +281,18 @@ public class SniperWeapon : MonoBehaviour
             return;
         }
 
+        float scaledVolume = SettingManager.Instance != null
+            ? SettingManager.Instance.GetScaledSoundEffectVolume(sfxVolume)
+            : sfxVolume;
+
         if (audioSource != null)
         {
-            audioSource.PlayOneShot(clip, sfxVolume);
+            audioSource.PlayOneShot(clip, scaledVolume);
             return;
         }
 
         Vector3 soundPosition = _camera != null ? _camera.transform.position : transform.position;
-        AudioSource.PlayClipAtPoint(clip, soundPosition, sfxVolume);
+        AudioSource.PlayClipAtPoint(clip, soundPosition, scaledVolume);
     }
 
     private void UpdateAmmoUI()
@@ -390,6 +412,17 @@ public class SniperWeapon : MonoBehaviour
         return scopeSprites[index];
     }
 
+    public void SetScopeOverlaySprite(Sprite sprite)
+    {
+        if (sprite == null)
+        {
+            Debug.LogWarning("SniperWeapon: SetScopeOverlaySprite called with null sprite.");
+            return;
+        }
+
+        ApplySpriteToOverlay(sprite);
+    }
+
     public void SetScopeOverlaySprite(int index)
     {
         if (scopeSprites == null)
@@ -404,6 +437,11 @@ public class SniperWeapon : MonoBehaviour
             return;
         }
 
+        ApplySpriteToOverlay(sprite);
+    }
+
+    private void ApplySpriteToOverlay(Sprite sprite)
+    {
         Debug.Log($"SniperWeapon: Applying sprite '{sprite.name}' to scope overlay.");
         bool applied = false;
 
