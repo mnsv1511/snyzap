@@ -137,8 +137,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Vegetable
   movementSpeed: 2
-  pauseTime: 1
-  moveDistance: 3
+  patrolDistanceEachSide: 2
   confinementArea: {fileID: 0}
   confinementBounds:
     m_Center: {x: 0, y: 0, z: 0}
@@ -147,6 +146,8 @@ MonoBehaviour:
   animator: {fileID: 0}
   walkAnimationParam: IsWalking
   flattenAnimationTrigger: Flatten
+  flattenedSprite: {fileID: 21300000, guid: 16fe8d34a92985643be9590f7f7b9cb2, type: 3}
+  targetSpriteRenderer: {fileID: 0}
 --- !u!1 &97501014
 GameObject:
   m_ObjectHideFlags: 0
@@ -726,7 +727,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LevelIntroUI
   levelText: {fileID: 1411641351}
   levelLabel: MISSION 1
-  displayDuration: 3
+  displayDuration: 1
 --- !u!4 &681531523
 Transform:
   m_ObjectHideFlags: 0
@@ -936,8 +937,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Vegetable
   movementSpeed: 2
-  pauseTime: 1
-  moveDistance: 3
+  patrolDistanceEachSide: 2
   confinementArea: {fileID: 0}
   confinementBounds:
     m_Center: {x: 0, y: 0, z: 0}
@@ -946,6 +946,8 @@ MonoBehaviour:
   animator: {fileID: 0}
   walkAnimationParam: IsWalking
   flattenAnimationTrigger: Flatten
+  flattenedSprite: {fileID: 21300000, guid: 16fe8d34a92985643be9590f7f7b9cb2, type: 3}
+  targetSpriteRenderer: {fileID: 0}
 --- !u!1 &804930569
 GameObject:
   m_ObjectHideFlags: 0
@@ -1262,14 +1264,10 @@ MonoBehaviour:
   spawnZ: 0
   vegetableTargets:
   - {fileID: 1410544032}
-  - {fileID: 0}
-  - {fileID: 0}
   - {fileID: 791334796}
   - {fileID: 68839845}
-  - {fileID: 0}
   - {fileID: 1215947379}
   - {fileID: 1915524507}
-  - {fileID: 0}
   autoFindVegetablesIfListEmpty: 1
   fixedTargetPoint: {x: 0, y: 0, z: 0}
 --- !u!4 &1172562728
@@ -1305,8 +1303,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Vegetable
   movementSpeed: 2
-  pauseTime: 1
-  moveDistance: 3
+  patrolDistanceEachSide: 2
   confinementArea: {fileID: 0}
   confinementBounds:
     m_Center: {x: 0, y: 0, z: 0}
@@ -1315,6 +1312,8 @@ MonoBehaviour:
   animator: {fileID: 0}
   walkAnimationParam: IsWalking
   flattenAnimationTrigger: Flatten
+  flattenedSprite: {fileID: 21300000, guid: 9e3ce72ff0c92fb4791789e8b9287f37, type: 3}
+  targetSpriteRenderer: {fileID: 0}
 --- !u!1001 &1229627957
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1379,6 +1378,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Junimo_Red_01
       objectReference: {fileID: 0}
+    - target: {fileID: 8133438298681516934, guid: 49e476c0e118e7a44a31cf5e6887c3fd, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 8d4d8e73c76c6f340a0f63c2ab35c97d, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1386,6 +1389,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7095250179436815694, guid: 49e476c0e118e7a44a31cf5e6887c3fd, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1410544032}
+    - targetCorrespondingSourceObject: {fileID: 7095250179436815694, guid: 49e476c0e118e7a44a31cf5e6887c3fd, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1410544036}
   m_SourcePrefab: {fileID: 100100000, guid: 49e476c0e118e7a44a31cf5e6887c3fd, type: 3}
 --- !u!1 &1247643322
 GameObject:
@@ -1416,8 +1422,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43d90b22a4ea8f544bb0f59dd3074b2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SniperWeapon
-  magazineSize: 5
-  currentAmmo: 5
+  magazineSize: 10
+  currentAmmo: 10
   ammoText: {fileID: 0}
   ammoTextTMP: {fileID: 1290573033}
   scopeOverlay: {fileID: 245080809}
@@ -1435,7 +1441,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   audioSource: {fileID: 0}
-  shootClickSfx: {fileID: 0}
+  shootClickSfx: {fileID: 8300000, guid: d173d64613301c04c80b4911b27aba42, type: 3}
   emptyClickSfx: {fileID: 0}
   reloadSfx: {fileID: 0}
   sfxVolume: 1
@@ -1785,8 +1791,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Vegetable
   movementSpeed: 2
-  pauseTime: 1
-  moveDistance: 3
+  patrolDistanceEachSide: 2
   confinementArea: {fileID: 0}
   confinementBounds:
     m_Center: {x: 0, y: 0, z: 0}
@@ -1795,6 +1800,35 @@ MonoBehaviour:
   animator: {fileID: 0}
   walkAnimationParam: IsWalking
   flattenAnimationTrigger: Flatten
+  flattenedSprite: {fileID: 21300000, guid: cb493c3aa4c6dac4b8e410988953c685, type: 3}
+  targetSpriteRenderer: {fileID: 0}
+--- !u!50 &1410544036
+Rigidbody2D:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 574391542}
+  m_BodyType: 0
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0
 --- !u!1 &1411641349
 GameObject:
   m_ObjectHideFlags: 0
@@ -2236,11 +2270,14 @@ MonoBehaviour:
   targetVegetable: {fileID: 0}
   fixedTargetPoint: {x: 0, y: 0, z: 0}
   useFixedTarget: 0
+  flattenDistance: 0.25
+  offScreenDestroyBuffer: 0.1
   animator: {fileID: 0}
   deathAnimationTrigger: Death
   hitVoiceClip: {fileID: 0}
   hitVoiceVolume: 1
   destroyImmediatelyOnHit: 1
+  fadeOutDuration: 0.4
 --- !u!1 &1575603135
 GameObject:
   m_ObjectHideFlags: 0
@@ -2650,11 +2687,14 @@ MonoBehaviour:
   targetVegetable: {fileID: 0}
   fixedTargetPoint: {x: 0, y: 0, z: 0}
   useFixedTarget: 0
+  flattenDistance: 0.25
+  offScreenDestroyBuffer: 0.1
   animator: {fileID: 0}
   deathAnimationTrigger: Death
   hitVoiceClip: {fileID: 0}
   hitVoiceVolume: 1
   destroyImmediatelyOnHit: 1
+  fadeOutDuration: 0.4
 --- !u!1 &1685825037
 GameObject:
   m_ObjectHideFlags: 0
@@ -2775,8 +2815,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43d90b22a4ea8f544bb0f59dd3074b2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SniperWeapon
-  magazineSize: 5
-  currentAmmo: 5
+  magazineSize: 10
+  currentAmmo: 10
   ammoText: {fileID: 0}
   ammoTextTMP: {fileID: 1290573033}
   scopeOverlay: {fileID: 2015630754}
@@ -2794,7 +2834,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   audioSource: {fileID: 0}
-  shootClickSfx: {fileID: 0}
+  shootClickSfx: {fileID: 8300000, guid: d173d64613301c04c80b4911b27aba42, type: 3}
   emptyClickSfx: {fileID: 0}
   reloadSfx: {fileID: 0}
   sfxVolume: 1
@@ -2991,8 +3031,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43d90b22a4ea8f544bb0f59dd3074b2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SniperWeapon
-  magazineSize: 5
-  currentAmmo: 5
+  magazineSize: 10
+  currentAmmo: 10
   ammoText: {fileID: 0}
   ammoTextTMP: {fileID: 1290573033}
   scopeOverlay: {fileID: 1249130307}
@@ -3010,7 +3050,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   audioSource: {fileID: 0}
-  shootClickSfx: {fileID: 8300000, guid: fbac29d920c4d084d9d823aaea47623d, type: 3}
+  shootClickSfx: {fileID: 8300000, guid: d173d64613301c04c80b4911b27aba42, type: 3}
   emptyClickSfx: {fileID: 0}
   reloadSfx: {fileID: 8300000, guid: f1fb4348589dfaa4f8a14bdf67837d72, type: 3}
   sfxVolume: 1
@@ -3161,8 +3201,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43d90b22a4ea8f544bb0f59dd3074b2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SniperWeapon
-  magazineSize: 5
-  currentAmmo: 5
+  magazineSize: 10
+  currentAmmo: 10
   ammoText: {fileID: 0}
   ammoTextTMP: {fileID: 1290573033}
   scopeOverlay: {fileID: 1685825037}
@@ -3180,7 +3220,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   audioSource: {fileID: 0}
-  shootClickSfx: {fileID: 0}
+  shootClickSfx: {fileID: 8300000, guid: d173d64613301c04c80b4911b27aba42, type: 3}
   emptyClickSfx: {fileID: 0}
   reloadSfx: {fileID: 0}
   sfxVolume: 1
@@ -3217,8 +3257,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Vegetable
   movementSpeed: 2
-  pauseTime: 1
-  moveDistance: 3
+  patrolDistanceEachSide: 2
   confinementArea: {fileID: 0}
   confinementBounds:
     m_Center: {x: 0, y: 0, z: 0}
@@ -3227,6 +3266,8 @@ MonoBehaviour:
   animator: {fileID: 0}
   walkAnimationParam: IsWalking
   flattenAnimationTrigger: Flatten
+  flattenedSprite: {fileID: 21300000, guid: 9e3ce72ff0c92fb4791789e8b9287f37, type: 3}
+  targetSpriteRenderer: {fileID: 0}
 --- !u!1 &1917015094
 GameObject:
   m_ObjectHideFlags: 0
@@ -3728,8 +3769,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43d90b22a4ea8f544bb0f59dd3074b2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SniperWeapon
-  magazineSize: 5
-  currentAmmo: 5
+  magazineSize: 10
+  currentAmmo: 10
   ammoText: {fileID: 0}
   ammoTextTMP: {fileID: 1290573033}
   scopeOverlay: {fileID: 676698383}
@@ -3747,7 +3788,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   audioSource: {fileID: 0}
-  shootClickSfx: {fileID: 0}
+  shootClickSfx: {fileID: 8300000, guid: d173d64613301c04c80b4911b27aba42, type: 3}
   emptyClickSfx: {fileID: 0}
   reloadSfx: {fileID: 0}
   sfxVolume: 1
