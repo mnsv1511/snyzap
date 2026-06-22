@@ -12,7 +12,6 @@ public class SettingManager : MonoBehaviour
     private const string SoundEffectVolumeKey = "SettingManager.SoundEffectVolume";
     private const string MusicVolumeKey = "SettingManager.MusicVolume";
     private const string CrosshairIndexKey = "SettingManager.CrosshairIndex";
-    private const string MouseSensitivityKey = "SettingManager.MouseSensitivity";
 
     [Header("Persistence")]
     [SerializeField] private bool persistAcrossScenes = true;
@@ -21,7 +20,6 @@ public class SettingManager : MonoBehaviour
     [SerializeField] [Range(0f, 1f)] private float defaultMasterVolume = 1f;
     [SerializeField] [Range(0f, 1f)] private float defaultSoundEffectVolume = 1f;
     [SerializeField] [Range(0f, 1f)] private float defaultMusicVolume = 1f;
-    [SerializeField] private float defaultMouseSensitivity = 1f;
     [SerializeField] private int defaultCrosshairIndex;
 
     [Header("Audio Sources")]
@@ -38,7 +36,6 @@ public class SettingManager : MonoBehaviour
     [SerializeField] private Slider masterVolumeSlider;
     [SerializeField] private Slider soundEffectVolumeSlider;
     [SerializeField] private Slider musicVolumeSlider;
-    [SerializeField] private Slider mouseSensitivitySlider;
     [SerializeField] private TMP_Dropdown crosshairDropdown;
 
     [Header("In-Game Settings Panel")]
@@ -46,14 +43,12 @@ public class SettingManager : MonoBehaviour
     [SerializeField] private GameObject settingsPanelPrefab;
     [SerializeField] private bool openWithEscape = true;
     [SerializeField] private bool pauseGameWhileOpen = true;
-    [SerializeField] private bool lockCursorWhenClosed = true;
 
     private readonly List<ManagedAudioSource> managedMusicSources = new List<ManagedAudioSource>();
     private readonly List<ManagedAudioSource> managedSoundEffectSources = new List<ManagedAudioSource>();
     public float MasterVolume { get; private set; }
     public float SoundEffectVolume { get; private set; }
     public float MusicVolume { get; private set; }
-    public float MouseSensitivity { get; private set; }
     public int CrosshairIndex { get; private set; }
 
     private bool isSettingsOpen;
@@ -63,7 +58,6 @@ public class SettingManager : MonoBehaviour
     public static bool IsOpen => Instance != null && Instance.IsSettingsOpen;
     private Transform panelContainer;
 
-    public static float CurrentMouseSensitivity => Instance != null ? Instance.MouseSensitivity : 1f;
     public static float CurrentMasterVolume => Instance != null ? Instance.MasterVolume : 1f;
     public static float CurrentSoundEffectVolume => Instance != null ? Instance.SoundEffectVolume : 1f;
     public static float CurrentMusicVolume => Instance != null ? Instance.MusicVolume : 1f;
@@ -122,10 +116,6 @@ public class SettingManager : MonoBehaviour
         if (isSettingsOpen)
         {
             Cursor.visible = false;
-            if (lockCursorWhenClosed)
-            {
-                Cursor.lockState = CursorLockMode.Locked;
-            }
         }
 
         if (Instance == this)
@@ -160,14 +150,6 @@ public class SettingManager : MonoBehaviour
         ApplyAudioGroupVolume(managedMusicSources, MusicVolume);
         Debug.Log($"SettingManager: Music Volume set to {MusicVolume:F2}");
         PlayerPrefs.SetFloat(MusicVolumeKey, MusicVolume);
-        PlayerPrefs.Save();
-    }
-
-    public void SetMouseSensitivity(float value)
-    {
-        MouseSensitivity = Mathf.Max(0.01f, value);
-        Debug.Log($"SettingManager: Mouse Sensitivity set to {MouseSensitivity:F2}");
-        PlayerPrefs.SetFloat(MouseSensitivityKey, MouseSensitivity);
         PlayerPrefs.Save();
     }
 
@@ -251,7 +233,6 @@ public class SettingManager : MonoBehaviour
         MasterVolume = PlayerPrefs.GetFloat(MasterVolumeKey, defaultMasterVolume);
         SoundEffectVolume = PlayerPrefs.GetFloat(SoundEffectVolumeKey, defaultSoundEffectVolume);
         MusicVolume = PlayerPrefs.GetFloat(MusicVolumeKey, defaultMusicVolume);
-        MouseSensitivity = PlayerPrefs.GetFloat(MouseSensitivityKey, defaultMouseSensitivity);
 
         int maxCrosshairIndex = Mathf.Max(0, (crosshairSprites?.Length ?? 1) - 1);
         CrosshairIndex = Mathf.Clamp(PlayerPrefs.GetInt(CrosshairIndexKey, defaultCrosshairIndex), 0, maxCrosshairIndex);
@@ -296,7 +277,6 @@ public class SettingManager : MonoBehaviour
         if (saveCursorState)
         {
             Cursor.visible = visible;
-            Cursor.lockState = visible ? CursorLockMode.None : (lockCursorWhenClosed ? CursorLockMode.Locked : Cursor.lockState);
         }
     }
 
@@ -468,11 +448,6 @@ public class SettingManager : MonoBehaviour
             musicVolumeSlider.onValueChanged.AddListener(SetMusicVolume);
         }
 
-        if (mouseSensitivitySlider != null)
-        {
-            mouseSensitivitySlider.onValueChanged.AddListener(SetMouseSensitivity);
-        }
-
         if (crosshairDropdown != null)
         {
             crosshairDropdown.onValueChanged.AddListener(SetCrosshair);
@@ -496,11 +471,6 @@ public class SettingManager : MonoBehaviour
             musicVolumeSlider.onValueChanged.RemoveListener(SetMusicVolume);
         }
 
-        if (mouseSensitivitySlider != null)
-        {
-            mouseSensitivitySlider.onValueChanged.RemoveListener(SetMouseSensitivity);
-        }
-
         if (crosshairDropdown != null)
         {
             crosshairDropdown.onValueChanged.RemoveListener(SetCrosshair);
@@ -522,11 +492,6 @@ public class SettingManager : MonoBehaviour
         if (musicVolumeSlider != null)
         {
             musicVolumeSlider.SetValueWithoutNotify(MusicVolume);
-        }
-
-        if (mouseSensitivitySlider != null)
-        {
-            mouseSensitivitySlider.SetValueWithoutNotify(MouseSensitivity);
         }
 
         if (crosshairDropdown != null)

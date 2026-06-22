@@ -5,10 +5,8 @@ public class Vegetable : MonoBehaviour
     public enum VegetableState { Alive, Flattened }
     private VegetableState currentState = VegetableState.Alive;
 
-    [SerializeField] private float movementSpeed = 2f;
-    [SerializeField] private float pauseTime = 1f;
-    [SerializeField] private float moveDistance = 3f;
-
+    [SerializeField] private float movementSpeed = 1f;
+    [SerializeField] private float patrolDistanceEachSide = 1f;
     [SerializeField] private Collider2D confinementArea;
     [SerializeField] private Bounds confinementBounds;
     [SerializeField] private bool useConfinementBounds = true;
@@ -16,13 +14,18 @@ public class Vegetable : MonoBehaviour
     [SerializeField] private Animator animator;
     [SerializeField] private string walkAnimationParam = "IsWalking";
     [SerializeField] private string flattenAnimationTrigger = "Flatten";
+    [SerializeField] private Sprite flattenedSprite;
+    [SerializeField] private SpriteRenderer targetSpriteRenderer;
+
+    private Sprite originalSprite;
+    private bool animatorWasEnabledBeforeFlatten;
 
     private Rigidbody2D rb;
     private SpriteRenderer spriteRenderer;
-    private Vector2 movementDirection = Vector2.one.normalized;
-    private float pauseCounter = 0f;
-    private bool isPaused = false;
-    private float moveTimer = 0f;
+    private Vector2 movementDirection = Vector2.right;
+    private float patrolCenterX;
+    private float patrolLeftLimit;
+    private float patrolRightLimit;
 
     private void Start()
     {
@@ -33,14 +36,23 @@ public class Vegetable : MonoBehaviour
         }
         rb.gravityScale = 0;
 
-        spriteRenderer = GetComponent<SpriteRenderer>();
+        ResolveSpriteRenderer();
+        if (spriteRenderer != null)
+        {
+            originalSprite = spriteRenderer.sprite;
+        }
 
         if (confinementArea != null)
         {
             confinementBounds = confinementArea.bounds;
             useConfinementBounds = true;
         }
+        else
+        {
+            useConfinementBounds = false;
+        }
 
+        InitializePatrolLimits();
         SelectNewDirection();
     }
 
@@ -53,60 +65,28 @@ public class Vegetable : MonoBehaviour
 
     private void HandleMovement()
     {
-        if (isPaused)
-        {
-            pauseCounter -= Time.fixedDeltaTime;
-            if (pauseCounter <= 0)
-            {
-                isPaused = false;
-                SelectNewDirection();
-                moveTimer = 0f;
-            }
-            else
-            {
-                rb.velocity = Vector2.zero;
-                if (animator != null)
-                {
-                    animator.SetBool(walkAnimationParam, false);
-                }
-                return;
-            }
-        }
-
-        moveTimer += Time.fixedDeltaTime;
-        if (moveTimer >= moveDistance / movementSpeed)
-        {
-            isPaused = true;
-            pauseCounter = pauseTime;
-            rb.velocity = Vector2.zero;
-            if (animator != null)
-            {
-                animator.SetBool(walkAnimationParam, false);
-            }
-            return;
-        }
-
-        // Check boundaries before moving
+        // Patrol on horizontal axis between fixed left/right limits.
         Vector2 nextPosition = (Vector2)transform.position + (movementDirection * movementSpeed * Time.fixedDeltaTime);
-        
-        if (IsWithinConfinement(nextPosition))
+
+        if (nextPosition.x <= patrolLeftLimit)
         {
-            rb.velocity = movementDirection * movementSpeed;
-            if (animator != null)
-            {
-                animator.SetBool(walkAnimationParam, true);
-            }
+            movementDirection = Vector2.right;
         }
-        else
+        else if (nextPosition.x >= patrolRightLimit)
         {
-            // Bounce - select new direction
-            isPaused = true;
-            pauseCounter = pauseTime;
-            rb.velocity = Vector2.zero;
-            if (animator != null)
-            {
-                animator.SetBool(walkAnimationParam, false);
-            }
+            movementDirection = Vector2.left;
+        }
+
+        nextPosition = (Vector2)transform.position + (movementDirection * movementSpeed * Time.fixedDeltaTime);
+        if (!IsWithinConfinement(nextPosition))
+        {
+            movementDirection = new Vector2(-movementDirection.x, 0f);
+        }
+
+        rb.velocity = movementDirection * movementSpeed;
+        if (animator != null)
+        {
+            animator.SetBool(walkAnimationParam, true);
         }
 
         // Flip sprite based on direction
@@ -118,20 +98,27 @@ public class Vegetable : MonoBehaviour
 
     private void SelectNewDirection()
     {
-        // Random direction (8 directions)
-        int directionChoice = Random.Range(0, 8);
-        movementDirection = directionChoice switch
+        movementDirection = Random.value < 0.5f ? Vector2.left : Vector2.right;
+    }
+
+    private void InitializePatrolLimits()
+    {
+        patrolCenterX = transform.position.x;
+        patrolLeftLimit = patrolCenterX - patrolDistanceEachSide;
+        patrolRightLimit = patrolCenterX + patrolDistanceEachSide;
+
+        if (useConfinementBounds)
         {
-            0 => Vector2.right,
-            1 => Vector2.left,
-            2 => Vector2.up,
-            3 => Vector2.down,
-            4 => (Vector2.right + Vector2.up).normalized,
-            5 => (Vector2.left + Vector2.up).normalized,
-            6 => (Vector2.right + Vector2.down).normalized,
-            7 => (Vector2.left + Vector2.down).normalized,
-            _ => Vector2.right
-        };
+            patrolLeftLimit = Mathf.Max(patrolLeftLimit, confinementBounds.min.x);
+            patrolRightLimit = Mathf.Min(patrolRightLimit, confinementBounds.max.x);
+        }
+
+        if (patrolLeftLimit > patrolRightLimit)
+        {
+            float currentX = transform.position.x;
+            patrolLeftLimit = currentX;
+            patrolRightLimit = currentX;
+        }
     }
 
     private bool IsWithinConfinement(Vector2 position)
@@ -151,13 +138,31 @@ public class Vegetable : MonoBehaviour
     {
         if (currentState == VegetableState.Flattened) return;
 
+        ResolveSpriteRenderer();
+
         currentState = VegetableState.Flattened;
         rb.velocity = Vector2.zero;
 
+        bool hasFlattenedSprite = spriteRenderer != null && flattenedSprite != null;
         if (animator != null)
         {
+            animatorWasEnabledBeforeFlatten = animator.enabled;
             animator.SetBool(walkAnimationParam, false);
-            animator.SetTrigger(flattenAnimationTrigger);
+
+            if (!hasFlattenedSprite)
+            {
+                animator.SetTrigger(flattenAnimationTrigger);
+            }
+        }
+
+        if (hasFlattenedSprite)
+        {
+            spriteRenderer.sprite = flattenedSprite;
+            // Animator can overwrite SpriteRenderer every frame, so disable it for guaranteed flattened image.
+            if (animator != null)
+            {
+                animator.enabled = false;
+            }
         }
 
         // Disable movement
@@ -169,16 +174,23 @@ public class Vegetable : MonoBehaviour
     /// </summary>
     public void ReviveVegetable()
     {
+        ResolveSpriteRenderer();
+
         currentState = VegetableState.Alive;
-        isPaused = false;
-        moveTimer = 0f;
-        pauseCounter = 0f;
+        InitializePatrolLimits();
+        SelectNewDirection();
         this.enabled = true;
 
         if (animator != null)
         {
+            animator.enabled = animatorWasEnabledBeforeFlatten;
             animator.SetBool(walkAnimationParam, false);
             animator.SetTrigger("Revive");
+        }
+
+        if (spriteRenderer != null && originalSprite != null)
+        {
+            spriteRenderer.sprite = originalSprite;
         }
     }
 
@@ -196,6 +208,32 @@ public class Vegetable : MonoBehaviour
         if (area != null)
         {
             confinementBounds = area.bounds;
+            useConfinementBounds = true;
+        }
+        else
+        {
+            useConfinementBounds = false;
+        }
+
+        InitializePatrolLimits();
+    }
+
+    private void ResolveSpriteRenderer()
+    {
+        if (targetSpriteRenderer != null)
+        {
+            spriteRenderer = targetSpriteRenderer;
+            return;
+        }
+
+        if (spriteRenderer == null)
+        {
+            spriteRenderer = GetComponent<SpriteRenderer>();
+        }
+
+        if (spriteRenderer == null)
+        {
+            spriteRenderer = GetComponentInChildren<SpriteRenderer>();
         }
     }
 }
