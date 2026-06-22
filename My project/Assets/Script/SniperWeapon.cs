@@ -17,17 +17,12 @@ public class SniperWeapon : MonoBehaviour
     public RawImage scopeRawImage;
     public Camera scopeCamera;
     public SpriteRenderer scopeOverlaySpriteRenderer;
-    public SpriteRenderer weaponSpriteRenderer;
-    public Renderer weaponMeshRenderer;
     public string scopeSpriteFolder = "mock_scope";
     public int scopeSpriteIndex = 0;
     public bool alwaysShowScope = true;
 
     public float normalFOV = 60f;
     public float scopedFOV = 30f;
-    public float minZoomFOV = 15f;
-    public float maxZoomFOV = 40f;
-    public float zoomSpeed = 5f;
     public LayerMask monsterLayerMask = ~0;
 
     [SerializeField] private AudioSource audioSource;
@@ -128,8 +123,6 @@ public class SniperWeapon : MonoBehaviour
         }
 
         HandleShootInput();
-        HandleScopeInput();
-        HandleZoomInput();
         HandleReloadInput();
         UpdateScopeOverlayPosition();
     }
@@ -140,36 +133,6 @@ public class SniperWeapon : MonoBehaviour
         {
             Shoot();
         }
-    }
-
-    private void HandleScopeInput()
-    {
-        if (Mouse.current.rightButton.wasPressedThisFrame)
-        {
-            EnterScope();
-        }
-
-        if (Mouse.current.rightButton.wasReleasedThisFrame)
-        {
-            ExitScope();
-        }
-    }
-
-    private void HandleZoomInput()
-    {
-        if (!_isScoped)
-            return;
-
-        float scrollValue = Mouse.current.scroll.ReadValue().y;
-        if (scrollValue == 0f)
-            return;
-
-        Camera targetCamera = scopeCamera != null ? scopeCamera : _camera;
-        if (targetCamera == null)
-            return;
-
-        float targetFOV = targetCamera.fieldOfView - scrollValue * zoomSpeed;
-        targetCamera.fieldOfView = Mathf.Clamp(targetFOV, minZoomFOV, maxZoomFOV);
     }
 
     private void HandleReloadInput()
@@ -228,43 +191,6 @@ public class SniperWeapon : MonoBehaviour
             hitMonster.TakeHit();
         }
 
-    }
-
-    private void EnterScope()
-    {
-        _isScoped = true;
-        Camera targetCamera = scopeCamera != null ? scopeCamera : _camera;
-        if (targetCamera != null)
-        {
-            targetCamera.fieldOfView = Mathf.Clamp(scopedFOV, minZoomFOV, maxZoomFOV);
-        }
-
-        SetScopeOverlay(true);
-        if (scopeCamera != null)
-        {
-            scopeCamera.enabled = true;
-        }
-        Debug.Log("SniperWeapon: Scoped in.");
-    }
-
-    private void ExitScope()
-    {
-        _isScoped = false;
-        if (_camera != null)
-        {
-            _camera.fieldOfView = normalFOV;
-        }
-
-        if (!alwaysShowScope)
-        {
-            SetScopeOverlay(false);
-        }
-
-        if (scopeCamera != null)
-        {
-            scopeCamera.enabled = false;
-        }
-        Debug.Log("SniperWeapon: Scoped out.");
     }
 
     public void ReloadMagazine()
@@ -491,34 +417,6 @@ public class SniperWeapon : MonoBehaviour
         if (!applied)
         {
             Debug.LogWarning("SniperWeapon: Could not apply loaded sprite. Assign scopeOverlayImage, scopeOverlaySpriteRenderer, or a scopeOverlay GameObject with Image/SpriteRenderer.");
-        }
-    }
-
-    public void ApplySpriteToWeapon(int index)
-    {
-        if (weaponSpriteRenderer == null)
-            return;
-
-        Sprite sprite = GetSprite(index);
-        if (sprite == null)
-            return;
-
-        weaponSpriteRenderer.sprite = sprite;
-    }
-
-    public void ApplyTextureToWeapon(int index)
-    {
-        if (weaponMeshRenderer == null)
-            return;
-
-        Sprite sprite = GetSprite(index);
-        if (sprite == null)
-            return;
-
-        Texture texture = sprite.texture;
-        if (weaponMeshRenderer.material != null)
-        {
-            weaponMeshRenderer.material.mainTexture = texture;
         }
     }
 
