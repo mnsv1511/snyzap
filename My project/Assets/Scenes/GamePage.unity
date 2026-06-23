@@ -150,6 +150,7 @@ MonoBehaviour:
   walkStateName: Walk
   initialIdleDuration: 1
   deathAnimationTrigger: Death
+  deathAnimationStateName: Dead
   flattenAnimationTrigger: Flatten
   deathVfxPrefab: {fileID: 3080909929795264892, guid: 6b819094670ec9b49b539fe150628b89, type: 3}
   targetSpriteRenderer: {fileID: 0}
@@ -872,6 +873,7 @@ MonoBehaviour:
   walkStateName: Walk
   initialIdleDuration: 1
   deathAnimationTrigger: Death
+  deathAnimationStateName: Dead
   flattenAnimationTrigger: Flatten
   deathVfxPrefab: {fileID: 3080909929795264892, guid: 6b819094670ec9b49b539fe150628b89, type: 3}
   targetSpriteRenderer: {fileID: 0}
@@ -1187,7 +1189,7 @@ MonoBehaviour:
   monsterPrefab: {fileID: 1673595098}
   spawnPerimeterRadius: 15
   spawnPerimeterCenter: {x: 0, y: 0}
-  initialDelay: 3
+  initialDelay: 1
   initialSpawnInterval: 2
   waveDuration: 60
   intervalDecreasePerWave: 0.2
@@ -1248,6 +1250,7 @@ MonoBehaviour:
   walkStateName: Walk
   initialIdleDuration: 1
   deathAnimationTrigger: Death
+  deathAnimationStateName: Dead
   flattenAnimationTrigger: Flatten
   deathVfxPrefab: {fileID: 3080909929795264892, guid: 6b819094670ec9b49b539fe150628b89, type: 3}
   targetSpriteRenderer: {fileID: 0}
@@ -1879,6 +1882,7 @@ MonoBehaviour:
   walkStateName: Walk
   initialIdleDuration: 1
   deathAnimationTrigger: Death
+  deathAnimationStateName: Dead
   flattenAnimationTrigger: Flatten
   deathVfxPrefab: {fileID: 3080909929795264892, guid: 6b819094670ec9b49b539fe150628b89, type: 3}
   targetSpriteRenderer: {fileID: 0}
@@ -2378,12 +2382,14 @@ MonoBehaviour:
   offScreenDestroyBuffer: 0.1
   animator: {fileID: 0}
   walkVfxPrefab: {fileID: 5373978105671266317, guid: 93beecbec76191742b46de4087c47708, type: 3}
+  walkVfxLocalPosition: {x: 0, y: 0, z: 0}
   deathAnimationTrigger: Death
   deathAnimationClipName: Anim_Monster_Death
   hitVoiceClip: {fileID: 0}
   hitVoiceVolume: 1
   destroyImmediatelyOnHit: 0
   fadeOutDuration: 0.4
+  passThroughOtherMonsters: 1
 --- !u!1 &1591118353
 GameObject:
   m_ObjectHideFlags: 0
@@ -2720,18 +2726,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Monster
   movementSpeed: 5
   targetVegetable: {fileID: 0}
-  fixedTargetPoint: {x: 0, y: 0, z: 0}
+  fixedTargetPoint: {x: 10, y: 5, z: 0}
   useFixedTarget: 0
   flattenDistance: 0.25
   offScreenDestroyBuffer: 0.1
   animator: {fileID: 0}
   walkVfxPrefab: {fileID: 5373978105671266317, guid: 93beecbec76191742b46de4087c47708, type: 3}
+  walkVfxLocalPosition: {x: 0, y: 0, z: 0}
   deathAnimationTrigger: Death
   deathAnimationClipName: Anim_Monster_Death
   hitVoiceClip: {fileID: 0}
   hitVoiceVolume: 1
   destroyImmediatelyOnHit: 0
   fadeOutDuration: 0.4
+  passThroughOtherMonsters: 1
 --- !u!1 &1685825037
 GameObject:
   m_ObjectHideFlags: 0
@@ -3314,6 +3322,7 @@ MonoBehaviour:
   walkStateName: Walk
   initialIdleDuration: 1
   deathAnimationTrigger: Death
+  deathAnimationStateName: Dead
   flattenAnimationTrigger: Flatten
   deathVfxPrefab: {fileID: 3080909929795264892, guid: 6b819094670ec9b49b539fe150628b89, type: 3}
   targetSpriteRenderer: {fileID: 0}
