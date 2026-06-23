@@ -5,6 +5,7 @@ using System.Collections.Generic;
 public class SpawnManager : MonoBehaviour
 {
     private static SpawnManager activeInstance;
+    private static int pendingStartingLevel = 0;
 
     [SerializeField] private GameObject monsterPrefab;
 
@@ -16,6 +17,15 @@ public class SpawnManager : MonoBehaviour
     [SerializeField] private float waveDuration = 60f;
     [SerializeField] private float intervalDecreasePerWave = 0.2f;
 
+    [Header("Level Settings")]
+    [SerializeField] private int totalLevels = 3;
+    [SerializeField] private float initialDelayAdjustmentPerLevel = -0.2f;
+    [SerializeField] private float initialSpawnIntervalAdjustmentPerLevel = 1f;
+    [SerializeField] private float waveDurationAdjustmentPerLevel = 10f;
+    [SerializeField] private float intervalDecreaseAdjustmentPerLevel = -0.05f;
+    [SerializeField] private float baseMonsterSpeed = 5f;
+    [SerializeField] private float monsterSpeedMultiplierPerLevel = 2f;
+
     [SerializeField] private bool spawnFromSceneCorners = true;
     [SerializeField] private Camera spawnCamera;
     [SerializeField] private float spawnZ = 0f;
@@ -25,7 +35,12 @@ public class SpawnManager : MonoBehaviour
     [SerializeField] private Vector3 fixedTargetPoint;
 
     private int currentWave = 0;
+    private int currentLevel = 0;
     private float currentSpawnInterval;
+    private float currentInitialDelay;
+    private float currentInitialSpawnInterval;
+    private float currentWaveDuration;
+    private float currentIntervalDecreasePerWave;
     private float waveTimer = 0f;
     private float spawnTimer = 0f;
     private bool isSpawning = false;
@@ -42,18 +57,20 @@ public class SpawnManager : MonoBehaviour
         }
 
         activeInstance = this;
+        ResetRuntimeState();
     }
 
     private void Start()
     {
-        ResetRuntimeState();
         StartCoroutine(BeginSpawning());
     }
 
     private void ResetRuntimeState()
     {
         currentWave = 0;
-        currentSpawnInterval = initialSpawnInterval;
+        currentLevel = Mathf.Clamp(pendingStartingLevel, 0, Mathf.Max(0, totalLevels - 1));
+        ApplyLevelSettings();
+        currentSpawnInterval = currentInitialSpawnInterval;
         waveTimer = 0f;
         spawnTimer = 0f;
         monstersPerSpawn = 1;
@@ -64,7 +81,7 @@ public class SpawnManager : MonoBehaviour
     private IEnumerator BeginSpawning()
     {
         // Wait for initial delay
-        yield return new WaitForSeconds(initialDelay);
+        yield return new WaitForSeconds(currentInitialDelay);
         isSpawning = true;
     }
 
@@ -76,7 +93,7 @@ public class SpawnManager : MonoBehaviour
         spawnTimer += Time.deltaTime;
 
         // Check if current wave is complete
-        if (waveTimer >= waveDuration)
+        if (waveTimer >= currentWaveDuration)
         {
             StartNewWave();
         }
@@ -254,21 +271,37 @@ public class SpawnManager : MonoBehaviour
     private void StartNewWave()
     {
         currentWave++;
+
+        if (currentLevel < Mathf.Max(0, totalLevels - 1))
+        {
+            currentLevel++;
+        }
+
+        ApplyLevelSettings();
         waveTimer = 0f;
         spawnTimer = 0f;
 
         // Increase difficulty
-        currentSpawnInterval = Mathf.Max(0.5f, initialSpawnInterval - (currentWave * intervalDecreasePerWave));
+        currentSpawnInterval = Mathf.Max(0.5f, currentInitialSpawnInterval - (currentWave * currentIntervalDecreasePerWave));
         monstersPerSpawn = 1 + (currentWave / 5); // Increase every 5 waves
 
-        Debug.Log($"Wave {currentWave} started! Spawn Interval: {currentSpawnInterval:F2}s, Monsters per spawn: {monstersPerSpawn}");
+        Debug.Log($"Wave {currentWave} started at Level {currentLevel + 1}/{Mathf.Max(1, totalLevels)}! Spawn Interval: {currentSpawnInterval:F2}s, Monsters per spawn: {monstersPerSpawn}");
     }
 
     private float GetDifficultySpeed()
     {
-        // Increase monster speed as waves progress
-        float baseSpeed = 5f;
-        return baseSpeed + (currentWave * 0.3f);
+        // Increase monster speed by multiplier on each level up.
+        float safeMultiplier = Mathf.Max(1f, monsterSpeedMultiplierPerLevel);
+        return Mathf.Max(0.1f, baseMonsterSpeed) * Mathf.Pow(safeMultiplier, currentLevel);
+    }
+
+    private void ApplyLevelSettings()
+    {
+        int clampedLevel = Mathf.Clamp(currentLevel, 0, Mathf.Max(0, totalLevels - 1));
+        currentInitialDelay = Mathf.Max(0f, initialDelay + (clampedLevel * initialDelayAdjustmentPerLevel));
+        currentInitialSpawnInterval = Mathf.Max(0.5f, initialSpawnInterval + (clampedLevel * initialSpawnIntervalAdjustmentPerLevel));
+        currentWaveDuration = Mathf.Max(1f, waveDuration + (clampedLevel * waveDurationAdjustmentPerLevel));
+        currentIntervalDecreasePerWave = Mathf.Max(0f, intervalDecreasePerWave + (clampedLevel * intervalDecreaseAdjustmentPerLevel));
     }
 
     public void StopSpawning()
@@ -285,17 +318,37 @@ public class SpawnManager : MonoBehaviour
     {
         StopSpawning();
         currentWave = 0;
+        currentLevel = 0;
+        ApplyLevelSettings();
         waveTimer = 0f;
         spawnTimer = 0f;
         monstersPerSpawn = 1;
-        currentSpawnInterval = initialSpawnInterval;
+        currentSpawnInterval = currentInitialSpawnInterval;
         totalMonstersSpawned = 0;
         StartCoroutine(BeginSpawning());
     }
 
     public int GetCurrentWave() => currentWave;
+    public int GetCurrentLevel() => currentLevel;
+    public int GetTotalLevels() => Mathf.Max(1, totalLevels);
     public int GetTotalMonstersSpawned() => totalMonstersSpawned;
-    public float GetSpawnIntervalForWave(int wave) => Mathf.Max(0.5f, initialSpawnInterval - (wave * intervalDecreasePerWave));
+    public static void SetPendingStartingLevel(int level)
+    {
+        pendingStartingLevel = Mathf.Max(0, level);
+    }
+
+    public static void ResetPendingStartingLevel()
+    {
+        pendingStartingLevel = 0;
+    }
+
+    public float GetSpawnIntervalForWave(int wave)
+    {
+        int clampedLevel = Mathf.Clamp(currentLevel, 0, Mathf.Max(0, totalLevels - 1));
+        float levelAdjustedInitialInterval = Mathf.Max(0.5f, initialSpawnInterval + (clampedLevel * initialSpawnIntervalAdjustmentPerLevel));
+        float levelAdjustedIntervalDecrease = Mathf.Max(0f, intervalDecreasePerWave + (clampedLevel * intervalDecreaseAdjustmentPerLevel));
+        return Mathf.Max(0.5f, levelAdjustedInitialInterval - (wave * levelAdjustedIntervalDecrease));
+    }
 
     private void OnDestroy()
     {

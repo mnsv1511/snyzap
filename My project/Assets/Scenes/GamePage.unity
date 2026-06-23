@@ -744,16 +744,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelIntroUI
   levelText: {fileID: 1560294554}
-  levelLabel: MISSION 1
+  levelLabel: MISSION
   displayDuration: 1
   missionFailText: MISSION FAIL
   missionCompleteText: MISSION COMPLETE
   startPageSceneName: StartPage
   endCreditSceneName: EndCreditPage
-  redirectDelay: 1.5
+  redirectDelay: 2
   autoFindVegetablesIfListEmpty: 1
   trackedVegetables: []
-  gameModeTimer: {fileID: 0}
+  gameModeTimer: {fileID: 804930570}
+  spawnManager: {fileID: 1172562727}
 --- !u!4 &681531523
 Transform:
   m_ObjectHideFlags: 0
@@ -1193,6 +1194,13 @@ MonoBehaviour:
   initialSpawnInterval: 2
   waveDuration: 60
   intervalDecreasePerWave: 0.2
+  totalLevels: 3
+  initialDelayAdjustmentPerLevel: -0.2
+  initialSpawnIntervalAdjustmentPerLevel: 1
+  waveDurationAdjustmentPerLevel: 10
+  intervalDecreaseAdjustmentPerLevel: -0.05
+  baseMonsterSpeed: 5
+  monsterSpeedMultiplierPerLevel: 2
   spawnFromSceneCorners: 1
   spawnCamera: {fileID: 1920239694}
   spawnZ: 0

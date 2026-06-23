@@ -22,6 +22,7 @@ public class LevelIntroUI : MonoBehaviour
     [SerializeField] private bool autoFindVegetablesIfListEmpty = true;
     [SerializeField] private Vegetable[] trackedVegetables;
     [SerializeField] private GameModeTimer gameModeTimer;
+    [SerializeField] private SpawnManager spawnManager;
 
     private bool missionEnded;
     private Coroutine introHideCoroutine;
@@ -30,7 +31,7 @@ public class LevelIntroUI : MonoBehaviour
     {
         ResolveReferences();
 
-        levelText.text = levelLabel;
+        levelText.text = GetLevelDisplayText();
         levelText.gameObject.SetActive(true);
         introHideCoroutine = StartCoroutine(HideAfterDelay());
     }
@@ -71,6 +72,22 @@ public class LevelIntroUI : MonoBehaviour
             yield return new WaitForSeconds(wait);
         }
 
+        bool isLastLevel = IsCurrentLevelLastLevel();
+        SpawnManager.ResetPendingStartingLevel();
+
+        if (isLastLevel)
+        {
+            if (!string.IsNullOrWhiteSpace(endCreditSceneName))
+            {
+                SceneManager.LoadScene(endCreditSceneName);
+            }
+            else
+            {
+                Debug.LogError("LevelIntroUI: End credit scene name is empty.", this);
+            }
+            yield break;
+        }
+
         if (!string.IsNullOrWhiteSpace(startPageSceneName))
         {
             SceneManager.LoadScene(startPageSceneName);
@@ -92,14 +109,72 @@ public class LevelIntroUI : MonoBehaviour
             yield return new WaitForSeconds(wait);
         }
 
-        if (!string.IsNullOrWhiteSpace(endCreditSceneName))
+        int currentLevel = GetCurrentLevelIndex();
+        int lastLevelIndex = Mathf.Max(0, GetTotalLevels() - 1);
+
+        if (currentLevel >= lastLevelIndex)
         {
-            SceneManager.LoadScene(endCreditSceneName);
+            SpawnManager.ResetPendingStartingLevel();
+            if (!string.IsNullOrWhiteSpace(endCreditSceneName))
+            {
+                SceneManager.LoadScene(endCreditSceneName);
+            }
+            else
+            {
+                Debug.LogError("LevelIntroUI: End credit scene name is empty.", this);
+            }
+            yield break;
+        }
+
+        int nextLevel = currentLevel + 1;
+        SpawnManager.SetPendingStartingLevel(nextLevel);
+
+        string currentSceneName = SceneManager.GetActiveScene().name;
+        if (!string.IsNullOrWhiteSpace(currentSceneName))
+        {
+            SceneManager.LoadScene(currentSceneName);
         }
         else
         {
-            Debug.LogError("LevelIntroUI: End credit scene name is empty.", this);
+            Debug.LogError("LevelIntroUI: Active scene name is empty.", this);
         }
+    }
+
+    private int GetCurrentLevelIndex()
+    {
+        return spawnManager != null ? spawnManager.GetCurrentLevel() : 0;
+    }
+
+    private int GetTotalLevels()
+    {
+        return spawnManager != null ? spawnManager.GetTotalLevels() : 1;
+    }
+
+    private bool IsCurrentLevelLastLevel()
+    {
+        return GetCurrentLevelIndex() >= Mathf.Max(0, GetTotalLevels() - 1);
+    }
+
+    private string GetLevelDisplayText()
+    {
+        int displayLevel = GetCurrentLevelIndex() + 1;
+        int totalLevelCount = Mathf.Max(1, GetTotalLevels());
+
+        if (string.IsNullOrWhiteSpace(levelLabel))
+        {
+            return $"MISSION {displayLevel}/{totalLevelCount}";
+        }
+
+        string text = levelLabel;
+        text = text.Replace("{level}", displayLevel.ToString());
+        text = text.Replace("{totalLevels}", totalLevelCount.ToString());
+
+        if (text == levelLabel)
+        {
+            return $"{levelLabel} {displayLevel}/{totalLevelCount}";
+        }
+
+        return text;
     }
 
     private void ShowMissionText(string message)
@@ -167,6 +242,11 @@ public class LevelIntroUI : MonoBehaviour
         if (gameModeTimer == null)
         {
             gameModeTimer = FindObjectOfType<GameModeTimer>();
+        }
+
+        if (spawnManager == null)
+        {
+            spawnManager = FindObjectOfType<SpawnManager>();
         }
     }
 }
