@@ -1,9 +1,11 @@
 using UnityEngine;
+using System.Collections;
 
 public class Vegetable : MonoBehaviour
 {
     public enum VegetableState { Alive, Flattened }
     private VegetableState currentState = VegetableState.Alive;
+    [SerializeField] private bool isDead = false;
 
     [SerializeField] private float movementSpeed = 1f;
     [SerializeField] private float patrolDistanceEachSide = 1f;
@@ -13,6 +15,10 @@ public class Vegetable : MonoBehaviour
 
     [SerializeField] private Animator animator;
     [SerializeField] private string walkAnimationParam = "IsWalking";
+    [SerializeField] private string idleStateName = "Idle";
+    [SerializeField] private string walkStateName = "Walk";
+    [SerializeField] private float initialIdleDuration = 1f;
+    [SerializeField] private string deathAnimationTrigger = "Death";
     [SerializeField] private string flattenAnimationTrigger = "Flatten";
     [SerializeField] private Sprite flattenedSprite;
     [SerializeField] private SpriteRenderer targetSpriteRenderer;
@@ -26,9 +32,15 @@ public class Vegetable : MonoBehaviour
     private float patrolCenterX;
     private float patrolLeftLimit;
     private float patrolRightLimit;
+    private bool canMove = false;
 
     private void Start()
     {
+        if (animator == null)
+        {
+            animator = GetComponent<Animator>();
+        }
+
         rb = GetComponent<Rigidbody2D>();
         if (rb == null)
         {
@@ -54,6 +66,8 @@ public class Vegetable : MonoBehaviour
 
         InitializePatrolLimits();
         SelectNewDirection();
+
+        StartCoroutine(BeginMovementAfterIdleDelay());
     }
 
     private void FixedUpdate()
@@ -65,6 +79,12 @@ public class Vegetable : MonoBehaviour
 
     private void HandleMovement()
     {
+        if (!canMove)
+        {
+            rb.velocity = Vector2.zero;
+            return;
+        }
+
         // Patrol on horizontal axis between fixed left/right limits.
         Vector2 nextPosition = (Vector2)transform.position + (movementDirection * movementSpeed * Time.fixedDeltaTime);
 
@@ -86,7 +106,14 @@ public class Vegetable : MonoBehaviour
         rb.velocity = movementDirection * movementSpeed;
         if (animator != null)
         {
-            animator.SetBool(walkAnimationParam, true);
+            if (HasAnimatorBoolParameter(walkAnimationParam))
+            {
+                animator.SetBool(walkAnimationParam, true);
+            }
+            else
+            {
+                EnsureStatePlaying(walkStateName);
+            }
         }
 
         // Flip sprite based on direction
@@ -136,26 +163,45 @@ public class Vegetable : MonoBehaviour
     /// </summary>
     public void FlattenVegetable()
     {
-        if (currentState == VegetableState.Flattened) return;
+        MarkDeadByMonster();
+    }
+
+    /// <summary>
+    /// Called when monster reaches this vegetable and kills it.
+    /// </summary>
+    public void MarkDeadByMonster()
+    {
+        if (isDead || currentState == VegetableState.Flattened) return;
 
         ResolveSpriteRenderer();
 
+        isDead = true;
         currentState = VegetableState.Flattened;
+        canMove = false;
         rb.velocity = Vector2.zero;
 
         bool hasFlattenedSprite = spriteRenderer != null && flattenedSprite != null;
+        bool playedDeathAnimation = false;
         if (animator != null)
         {
             animatorWasEnabledBeforeFlatten = animator.enabled;
-            animator.SetBool(walkAnimationParam, false);
+            animator.enabled = true;
 
-            if (!hasFlattenedSprite)
+            if (HasAnimatorBoolParameter(walkAnimationParam))
             {
-                animator.SetTrigger(flattenAnimationTrigger);
+                animator.SetBool(walkAnimationParam, false);
+            }
+
+            playedDeathAnimation = TrySetAnimatorTrigger(deathAnimationTrigger) ||
+                                   TrySetAnimatorTrigger(flattenAnimationTrigger);
+
+            if (playedDeathAnimation)
+            {
+                animator.Update(0f);
             }
         }
 
-        if (hasFlattenedSprite)
+        if (hasFlattenedSprite && !playedDeathAnimation)
         {
             spriteRenderer.sprite = flattenedSprite;
             // Animator can overwrite SpriteRenderer every frame, so disable it for guaranteed flattened image.
@@ -176,6 +222,7 @@ public class Vegetable : MonoBehaviour
     {
         ResolveSpriteRenderer();
 
+        isDead = false;
         currentState = VegetableState.Alive;
         InitializePatrolLimits();
         SelectNewDirection();
@@ -184,7 +231,10 @@ public class Vegetable : MonoBehaviour
         if (animator != null)
         {
             animator.enabled = animatorWasEnabledBeforeFlatten;
-            animator.SetBool(walkAnimationParam, false);
+            if (HasAnimatorBoolParameter(walkAnimationParam))
+            {
+                animator.SetBool(walkAnimationParam, false);
+            }
             animator.SetTrigger("Revive");
         }
 
@@ -195,11 +245,17 @@ public class Vegetable : MonoBehaviour
     }
 
     public VegetableState CurrentState => currentState;
+    public bool IsDead => isDead;
     public bool IsAlive => currentState == VegetableState.Alive;
 
     public void SetMovementSpeed(float speed)
     {
         movementSpeed = Mathf.Max(0.1f, speed);
+    }
+
+    public void SetInitialIdleDuration(float duration)
+    {
+        initialIdleDuration = Mathf.Max(0f, duration);
     }
 
     public void SetConfinementArea(Collider2D area)
@@ -235,5 +291,132 @@ public class Vegetable : MonoBehaviour
         {
             spriteRenderer = GetComponentInChildren<SpriteRenderer>();
         }
+    }
+
+    private IEnumerator BeginMovementAfterIdleDelay()
+    {
+        if (animator != null)
+        {
+            PlayStateIfExists(idleStateName);
+
+            if (HasAnimatorBoolParameter(walkAnimationParam))
+            {
+                animator.SetBool(walkAnimationParam, false);
+            }
+        }
+
+        float delay = Mathf.Max(0f, initialIdleDuration);
+        if (delay > 0f)
+        {
+            yield return new WaitForSeconds(delay);
+        }
+
+        canMove = true;
+
+        if (animator != null)
+        {
+            if (HasAnimatorBoolParameter(walkAnimationParam))
+            {
+                animator.SetBool(walkAnimationParam, true);
+            }
+
+            PlayStateIfExists(walkStateName);
+        }
+    }
+
+    private void PlayStateIfExists(string stateName)
+    {
+        if (animator == null || string.IsNullOrWhiteSpace(stateName))
+        {
+            return;
+        }
+
+        int stateHash = Animator.StringToHash(stateName);
+        for (int i = 0; i < animator.layerCount; i++)
+        {
+            if (animator.HasState(i, stateHash))
+            {
+                animator.Play(stateHash, i, 0f);
+                animator.Update(0f);
+                return;
+            }
+        }
+    }
+
+    private void EnsureStatePlaying(string stateName)
+    {
+        if (animator == null || string.IsNullOrWhiteSpace(stateName))
+        {
+            return;
+        }
+
+        int stateHash = Animator.StringToHash(stateName);
+        if (IsStatePlaying(stateHash))
+        {
+            return;
+        }
+
+        PlayStateIfExists(stateName);
+    }
+
+    private bool IsStatePlaying(int stateHash)
+    {
+        if (animator == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < animator.layerCount; i++)
+        {
+            AnimatorStateInfo current = animator.GetCurrentAnimatorStateInfo(i);
+            if (current.shortNameHash == stateHash)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool HasAnimatorBoolParameter(string paramName)
+    {
+        if (animator == null || string.IsNullOrWhiteSpace(paramName))
+        {
+            return false;
+        }
+
+        AnimatorControllerParameter[] parameters = animator.parameters;
+        for (int i = 0; i < parameters.Length; i++)
+        {
+            if (parameters[i].type == AnimatorControllerParameterType.Bool &&
+                string.Equals(parameters[i].name, paramName, System.StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool TrySetAnimatorTrigger(string triggerName)
+    {
+        if (animator == null || string.IsNullOrWhiteSpace(triggerName))
+        {
+            return false;
+        }
+
+        AnimatorControllerParameter[] parameters = animator.parameters;
+        for (int i = 0; i < parameters.Length; i++)
+        {
+            if (parameters[i].type == AnimatorControllerParameterType.Trigger &&
+                string.Equals(parameters[i].name, triggerName, System.StringComparison.Ordinal))
+            {
+                animator.ResetTrigger(triggerName);
+                animator.SetTrigger(triggerName);
+                return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -1,6 +1,5 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class GameModeTimer : MonoBehaviour
 {
@@ -16,6 +15,8 @@ public class GameModeTimer : MonoBehaviour
 
     private float remainingTime;
     private bool hasTimeExpired;
+
+    public bool HasTimeExpired => hasTimeExpired;
 
     private void Start()
     {
@@ -59,14 +60,6 @@ public class GameModeTimer : MonoBehaviour
     private void OnTimerExpired()
     {
         hasTimeExpired = true;
-
-        if (string.IsNullOrWhiteSpace(endCreditSceneName))
-        {
-            Debug.LogError("GameModeTimer: End credit scene name is empty.");
-            return;
-        }
-
-        SceneManager.LoadScene(endCreditSceneName);
     }
 
     public void ResetTimer(float newDurationSeconds)

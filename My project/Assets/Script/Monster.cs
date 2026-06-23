@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class Monster : MonoBehaviour
 {
@@ -12,10 +13,12 @@ public class Monster : MonoBehaviour
 
     [SerializeField] private Animator animator;
     [SerializeField] private string deathAnimationTrigger = "Death";
+    [SerializeField] private string deathAnimationClipName = "Anim_Monster_Death";
     [SerializeField] private AudioClip hitVoiceClip;
     [SerializeField] [Range(0f, 1f)] private float hitVoiceVolume = 1f;
     [SerializeField] private bool destroyImmediatelyOnHit = false;
     [SerializeField] private float fadeOutDuration = 0.4f;
+    [SerializeField] private bool passThroughOtherMonsters = true;
 
     private bool isAlive = true;
     private bool isExitingScreen = false;
@@ -23,20 +26,34 @@ public class Monster : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private Vector2 movementDirection = Vector2.zero;
     private Vector2 exitDirection = Vector2.right;
+    private bool componentsInitialized = false;
+    private Collider2D[] ownColliders;
+
+    private static readonly List<Collider2D> activeMonsterColliders = new List<Collider2D>();
+
+    private void Awake()
+    {
+        EnsureComponentsInitialized();
+    }
 
     private void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
-        spriteRenderer = GetComponent<SpriteRenderer>();
+        EnsureComponentsInitialized();
+    }
 
-        if (rb == null)
+    private void OnDestroy()
+    {
+        UnregisterMonsterColliders();
+    }
+
+    private void OnMouseDown()
+    {
+        if (!isAlive)
         {
-            rb = gameObject.AddComponent<Rigidbody2D>();
+            return;
         }
 
-        rb.bodyType = RigidbodyType2D.Dynamic;
-        rb.gravityScale = 0;
-        rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+        TakeHit();
     }
 
     private void FixedUpdate()
@@ -129,8 +146,13 @@ public class Monster : MonoBehaviour
     {
         if (!isAlive) return;
 
+        EnsureComponentsInitialized();
+
         isAlive = false;
-        rb.velocity = Vector2.zero;
+        if (rb != null)
+        {
+            rb.velocity = Vector2.zero;
+        }
 
         if (hitVoiceClip != null)
         {
@@ -140,18 +162,77 @@ public class Monster : MonoBehaviour
             AudioSource.PlayClipAtPoint(hitVoiceClip, transform.position, scaledVolume);
         }
 
-        if (destroyImmediatelyOnHit)
+        bool canPlayDeathAnimation = animator != null &&
+                                     (!string.IsNullOrWhiteSpace(deathAnimationClipName) ||
+                                      !string.IsNullOrWhiteSpace(deathAnimationTrigger));
+
+        if (destroyImmediatelyOnHit && !canPlayDeathAnimation)
         {
             Destroy(gameObject);
             return;
         }
 
-        if (animator != null)
-        {
-            animator.SetTrigger(deathAnimationTrigger);
-        }
+        PlayDeathAnimation();
 
         StartCoroutine(HandleDeathFadeOut());
+    }
+
+    private void PlayDeathAnimation()
+    {
+        if (animator == null)
+        {
+            return;
+        }
+
+        animator.enabled = true;
+        bool played = false;
+
+        if (!string.IsNullOrWhiteSpace(deathAnimationTrigger) && HasAnimatorTrigger(deathAnimationTrigger))
+        {
+            animator.ResetTrigger(deathAnimationTrigger);
+            animator.SetTrigger(deathAnimationTrigger);
+            played = true;
+        }
+
+        if (!played && !string.IsNullOrWhiteSpace(deathAnimationClipName))
+        {
+            int stateHash = Animator.StringToHash(deathAnimationClipName);
+            for (int i = 0; i < animator.layerCount; i++)
+            {
+                if (animator.HasState(i, stateHash))
+                {
+                    animator.Play(stateHash, i, 0f);
+                    played = true;
+                    break;
+                }
+            }
+        }
+
+        if (played)
+        {
+            // Force an immediate animator evaluation so first-hit death is visible reliably.
+            animator.Update(0f);
+        }
+    }
+
+    private bool HasAnimatorTrigger(string triggerName)
+    {
+        if (animator == null)
+        {
+            return false;
+        }
+
+        AnimatorControllerParameter[] parameters = animator.parameters;
+        for (int i = 0; i < parameters.Length; i++)
+        {
+            if (parameters[i].type == AnimatorControllerParameterType.Trigger &&
+                string.Equals(parameters[i].name, triggerName, System.StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -164,7 +245,7 @@ public class Monster : MonoBehaviour
         Vegetable vegetable = collision.GetComponent<Vegetable>();
         if (vegetable != null && vegetable.IsAlive)
         {
-            vegetable.FlattenVegetable();
+            vegetable.MarkDeadByMonster();
             BeginExitAfterFlatten();
         }
     }
@@ -186,7 +267,7 @@ public class Monster : MonoBehaviour
         float distance = Vector2.Distance(transform.position, targetVegetable.position);
         if (distance <= flattenDistance)
         {
-            vegetable.FlattenVegetable();
+            vegetable.MarkDeadByMonster();
             BeginExitAfterFlatten();
         }
     }
@@ -265,18 +346,42 @@ public class Monster : MonoBehaviour
     private float GetAnimationLength(string triggerName)
     {
         if (animator == null) return 0.5f;
-        
+
+        if (animator.runtimeAnimatorController == null)
+        {
+            return 0.5f;
+        }
+
         AnimationClip[] clips = animator.runtimeAnimatorController.animationClips;
+
+        if (!string.IsNullOrWhiteSpace(deathAnimationClipName))
+        {
+            foreach (AnimationClip clip in clips)
+            {
+                if (string.Equals(clip.name, deathAnimationClipName, System.StringComparison.OrdinalIgnoreCase))
+                {
+                    return clip.length;
+                }
+            }
+        }
+
         foreach (AnimationClip clip in clips)
         {
-            if (clip.name == triggerName)
+            if (string.Equals(clip.name, triggerName, System.StringComparison.OrdinalIgnoreCase) ||
+                clip.name.IndexOf(triggerName, System.StringComparison.OrdinalIgnoreCase) >= 0)
+            {
                 return clip.length;
+            }
         }
+
         return 0.5f;
     }
 
     private IEnumerator HandleDeathFadeOut()
     {
+        // Ensure at least one frame renders the death pose before waiting/fading.
+        yield return null;
+
         float deathAnimationDuration = animator != null ? GetAnimationLength(deathAnimationTrigger) : 0f;
         if (deathAnimationDuration > 0f)
         {
@@ -320,5 +425,87 @@ public class Monster : MonoBehaviour
         }
 
         Destroy(gameObject);
+    }
+
+    private void EnsureComponentsInitialized()
+    {
+        if (componentsInitialized)
+        {
+            return;
+        }
+
+        rb = GetComponent<Rigidbody2D>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
+
+        if (animator == null)
+        {
+            animator = GetComponent<Animator>();
+        }
+
+        if (rb == null)
+        {
+            rb = gameObject.AddComponent<Rigidbody2D>();
+        }
+
+        rb.bodyType = RigidbodyType2D.Dynamic;
+        rb.gravityScale = 0;
+        rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+
+        ownColliders = GetComponentsInChildren<Collider2D>();
+        RegisterMonsterColliders();
+
+        componentsInitialized = true;
+    }
+
+    private void RegisterMonsterColliders()
+    {
+        if (!passThroughOtherMonsters || ownColliders == null || ownColliders.Length == 0)
+        {
+            return;
+        }
+
+        for (int i = 0; i < ownColliders.Length; i++)
+        {
+            Collider2D current = ownColliders[i];
+            if (current == null)
+            {
+                continue;
+            }
+
+            for (int j = 0; j < activeMonsterColliders.Count; j++)
+            {
+                Collider2D other = activeMonsterColliders[j];
+                if (other == null || other == current)
+                {
+                    continue;
+                }
+
+                Physics2D.IgnoreCollision(current, other, true);
+            }
+
+            if (!activeMonsterColliders.Contains(current))
+            {
+                activeMonsterColliders.Add(current);
+            }
+        }
+    }
+
+    private void UnregisterMonsterColliders()
+    {
+        if (ownColliders == null || ownColliders.Length == 0)
+        {
+            return;
+        }
+
+        for (int i = 0; i < ownColliders.Length; i++)
+        {
+            Collider2D current = ownColliders[i];
+            if (current == null)
+            {
+                continue;
+            }
+
+            activeMonsterColliders.Remove(current);
+        }
     }
 }
