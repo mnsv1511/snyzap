@@ -27,6 +27,7 @@ public class SniperWeapon : MonoBehaviour
     public LayerMask monsterLayerMask = ~0;
 
     [SerializeField] private AudioSource audioSource;
+    [SerializeField] private GameObject shotVfxPrefab;
     [SerializeField] private AudioClip shootClickSfx;
     [SerializeField] private AudioClip emptyClickSfx;
     [SerializeField] private AudioClip reloadSfx;
@@ -174,6 +175,7 @@ public class SniperWeapon : MonoBehaviour
 
         Vector2 mouseScreen = Mouse.current.position.ReadValue();
         Vector2 worldPoint = aimCamera.ScreenToWorldPoint(new Vector3(mouseScreen.x, mouseScreen.y, Mathf.Abs(aimCamera.transform.position.z)));
+        SpawnShotVfx(worldPoint);
         Collider2D[] hits = Physics2D.OverlapPointAll(worldPoint, monsterLayerMask);
 
         Monster hitMonster = null;
@@ -239,6 +241,26 @@ public class SniperWeapon : MonoBehaviour
         {
             ammoText.text = ammoTextValue;
         }
+    }
+
+    private void SpawnShotVfx(Vector2 worldPoint)
+    {
+        if (shotVfxPrefab == null)
+        {
+            return;
+        }
+
+        GameObject shotVfxInstance = Instantiate(shotVfxPrefab, worldPoint, Quaternion.identity);
+
+        ParticleSystem particleSystem = shotVfxInstance.GetComponentInChildren<ParticleSystem>();
+        if (particleSystem != null)
+        {
+            float lifetime = particleSystem.main.duration + particleSystem.main.startLifetime.constantMax;
+            Destroy(shotVfxInstance, Mathf.Max(0.1f, lifetime));
+            return;
+        }
+
+        Destroy(shotVfxInstance, 2f);
     }
 
     public Sprite[] LoadSpritesFromFolder(string folderName)

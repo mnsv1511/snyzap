@@ -19,8 +19,9 @@ public class Vegetable : MonoBehaviour
     [SerializeField] private string walkStateName = "Walk";
     [SerializeField] private float initialIdleDuration = 1f;
     [SerializeField] private string deathAnimationTrigger = "Death";
+    [SerializeField] private string deathAnimationStateName = "Dead";
     [SerializeField] private string flattenAnimationTrigger = "Flatten";
-    [SerializeField] private Sprite flattenedSprite;
+    [SerializeField] private GameObject deathVfxPrefab;
     [SerializeField] private SpriteRenderer targetSpriteRenderer;
 
     private Sprite originalSprite;
@@ -180,7 +181,6 @@ public class Vegetable : MonoBehaviour
         canMove = false;
         rb.velocity = Vector2.zero;
 
-        bool hasFlattenedSprite = spriteRenderer != null && flattenedSprite != null;
         bool playedDeathAnimation = false;
         if (animator != null)
         {
@@ -193,7 +193,8 @@ public class Vegetable : MonoBehaviour
             }
 
             playedDeathAnimation = TrySetAnimatorTrigger(deathAnimationTrigger) ||
-                                   TrySetAnimatorTrigger(flattenAnimationTrigger);
+                                   TrySetAnimatorTrigger(flattenAnimationTrigger) ||
+                                   PlayStateIfExists(deathAnimationStateName);
 
             if (playedDeathAnimation)
             {
@@ -201,15 +202,7 @@ public class Vegetable : MonoBehaviour
             }
         }
 
-        if (hasFlattenedSprite && !playedDeathAnimation)
-        {
-            spriteRenderer.sprite = flattenedSprite;
-            // Animator can overwrite SpriteRenderer every frame, so disable it for guaranteed flattened image.
-            if (animator != null)
-            {
-                animator.enabled = false;
-            }
-        }
+        SpawnDeathVfx();
 
         // Disable movement
         this.enabled = false;
@@ -324,11 +317,11 @@ public class Vegetable : MonoBehaviour
         }
     }
 
-    private void PlayStateIfExists(string stateName)
+    private bool PlayStateIfExists(string stateName)
     {
         if (animator == null || string.IsNullOrWhiteSpace(stateName))
         {
-            return;
+            return false;
         }
 
         int stateHash = Animator.StringToHash(stateName);
@@ -338,9 +331,11 @@ public class Vegetable : MonoBehaviour
             {
                 animator.Play(stateHash, i, 0f);
                 animator.Update(0f);
-                return;
+                return true;
             }
         }
+
+        return false;
     }
 
     private void EnsureStatePlaying(string stateName)
@@ -418,5 +413,25 @@ public class Vegetable : MonoBehaviour
         }
 
         return false;
+    }
+
+    private void SpawnDeathVfx()
+    {
+        if (deathVfxPrefab == null)
+        {
+            return;
+        }
+
+        GameObject deathVfxInstance = Instantiate(deathVfxPrefab, transform.position, Quaternion.identity);
+
+        ParticleSystem particleSystem = deathVfxInstance.GetComponentInChildren<ParticleSystem>();
+        if (particleSystem != null)
+        {
+            float lifetime = particleSystem.main.duration + particleSystem.main.startLifetime.constantMax;
+            Destroy(deathVfxInstance, Mathf.Max(0.1f, lifetime));
+            return;
+        }
+
+        Destroy(deathVfxInstance, 2f);
     }
 }

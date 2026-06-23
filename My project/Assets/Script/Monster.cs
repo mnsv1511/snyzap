@@ -12,6 +12,8 @@ public class Monster : MonoBehaviour
     [SerializeField] private float offScreenDestroyBuffer = 0.1f;
 
     [SerializeField] private Animator animator;
+    [SerializeField] private GameObject walkVfxPrefab;
+    [SerializeField] private Vector3 walkVfxLocalPosition = Vector3.zero;
     [SerializeField] private string deathAnimationTrigger = "Death";
     [SerializeField] private string deathAnimationClipName = "Anim_Monster_Death";
     [SerializeField] private AudioClip hitVoiceClip;
@@ -28,6 +30,8 @@ public class Monster : MonoBehaviour
     private Vector2 exitDirection = Vector2.right;
     private bool componentsInitialized = false;
     private Collider2D[] ownColliders;
+    private GameObject walkVfxInstance;
+    private Vector3 walkVfxBaseLocalScale = Vector3.one;
 
     private static readonly List<Collider2D> activeMonsterColliders = new List<Collider2D>();
 
@@ -43,6 +47,7 @@ public class Monster : MonoBehaviour
 
     private void OnDestroy()
     {
+        DestroyWalkVfx();
         UnregisterMonsterColliders();
     }
 
@@ -64,6 +69,7 @@ public class Monster : MonoBehaviour
         {
             rb.velocity = exitDirection * movementSpeed;
             UpdateFacingDirection(exitDirection);
+            UpdateWalkVfx(true);
 
             if (IsOutsideMainCamera(transform.position))
             {
@@ -85,6 +91,7 @@ public class Monster : MonoBehaviour
 
         TryFlattenTargetByDistance();
         UpdateFacingDirection(movementDirection);
+        UpdateWalkVfx(rb.velocity.sqrMagnitude > 0.0001f);
     }
 
     /// <summary>
@@ -149,6 +156,7 @@ public class Monster : MonoBehaviour
         EnsureComponentsInitialized();
 
         isAlive = false;
+        DestroyWalkVfx();
         if (rb != null)
         {
             rb.velocity = Vector2.zero;
@@ -298,6 +306,49 @@ public class Monster : MonoBehaviour
         if (direction.x != 0f && spriteRenderer != null)
         {
             spriteRenderer.flipX = direction.x > 0f;
+        }
+    }
+
+    private void UpdateWalkVfx(bool shouldBeActive)
+    {
+        if (walkVfxPrefab == null)
+        {
+            return;
+        }
+
+        if (shouldBeActive)
+        {
+            if (walkVfxInstance == null)
+            {
+                walkVfxInstance = Instantiate(walkVfxPrefab, transform);
+                walkVfxInstance.transform.localPosition = walkVfxLocalPosition;
+                walkVfxInstance.transform.localRotation = Quaternion.identity;
+                walkVfxBaseLocalScale = walkVfxInstance.transform.localScale;
+            }
+
+            float xSign = spriteRenderer != null && spriteRenderer.flipX ? -1f : 1f;
+            walkVfxInstance.transform.localScale = new Vector3(
+                Mathf.Abs(walkVfxBaseLocalScale.x) * xSign,
+                walkVfxBaseLocalScale.y,
+                walkVfxBaseLocalScale.z);
+
+            if (!walkVfxInstance.activeSelf)
+            {
+                walkVfxInstance.SetActive(true);
+            }
+
+            return;
+        }
+
+        DestroyWalkVfx();
+    }
+
+    private void DestroyWalkVfx()
+    {
+        if (walkVfxInstance != null)
+        {
+            Destroy(walkVfxInstance);
+            walkVfxInstance = null;
         }
     }
 
@@ -453,6 +504,8 @@ public class Monster : MonoBehaviour
 
         ownColliders = GetComponentsInChildren<Collider2D>();
         RegisterMonsterColliders();
+
+        UpdateWalkVfx(false);
 
         componentsInitialized = true;
     }

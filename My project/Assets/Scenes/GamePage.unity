@@ -151,7 +151,7 @@ MonoBehaviour:
   initialIdleDuration: 1
   deathAnimationTrigger: Death
   flattenAnimationTrigger: Flatten
-  flattenedSprite: {fileID: 21300000, guid: 16fe8d34a92985643be9590f7f7b9cb2, type: 3}
+  deathVfxPrefab: {fileID: 3080909929795264892, guid: 6b819094670ec9b49b539fe150628b89, type: 3}
   targetSpriteRenderer: {fileID: 0}
 --- !u!1 &97501014
 GameObject:
@@ -873,7 +873,7 @@ MonoBehaviour:
   initialIdleDuration: 1
   deathAnimationTrigger: Death
   flattenAnimationTrigger: Flatten
-  flattenedSprite: {fileID: 21300000, guid: 16fe8d34a92985643be9590f7f7b9cb2, type: 3}
+  deathVfxPrefab: {fileID: 3080909929795264892, guid: 6b819094670ec9b49b539fe150628b89, type: 3}
   targetSpriteRenderer: {fileID: 0}
 --- !u!1 &804930569
 GameObject:
@@ -1249,7 +1249,7 @@ MonoBehaviour:
   initialIdleDuration: 1
   deathAnimationTrigger: Death
   flattenAnimationTrigger: Flatten
-  flattenedSprite: {fileID: 21300000, guid: 9e3ce72ff0c92fb4791789e8b9287f37, type: 3}
+  deathVfxPrefab: {fileID: 3080909929795264892, guid: 6b819094670ec9b49b539fe150628b89, type: 3}
   targetSpriteRenderer: {fileID: 0}
 --- !u!1001 &1229627957
 PrefabInstance:
@@ -1378,6 +1378,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   audioSource: {fileID: 0}
+  shotVfxPrefab: {fileID: 4632848052670746736, guid: 6418db1393961184fbaaafd78077dc94, type: 3}
   shootClickSfx: {fileID: 8300000, guid: d173d64613301c04c80b4911b27aba42, type: 3}
   emptyClickSfx: {fileID: 0}
   reloadSfx: {fileID: 0}
@@ -1879,7 +1880,7 @@ MonoBehaviour:
   initialIdleDuration: 1
   deathAnimationTrigger: Death
   flattenAnimationTrigger: Flatten
-  flattenedSprite: {fileID: 21300000, guid: cb493c3aa4c6dac4b8e410988953c685, type: 3}
+  deathVfxPrefab: {fileID: 3080909929795264892, guid: 6b819094670ec9b49b539fe150628b89, type: 3}
   targetSpriteRenderer: {fileID: 0}
 --- !u!50 &1410544036
 Rigidbody2D:
@@ -2376,6 +2377,7 @@ MonoBehaviour:
   flattenDistance: 0.25
   offScreenDestroyBuffer: 0.1
   animator: {fileID: 0}
+  walkVfxPrefab: {fileID: 5373978105671266317, guid: 93beecbec76191742b46de4087c47708, type: 3}
   deathAnimationTrigger: Death
   deathAnimationClipName: Anim_Monster_Death
   hitVoiceClip: {fileID: 0}
@@ -2723,6 +2725,7 @@ MonoBehaviour:
   flattenDistance: 0.25
   offScreenDestroyBuffer: 0.1
   animator: {fileID: 0}
+  walkVfxPrefab: {fileID: 5373978105671266317, guid: 93beecbec76191742b46de4087c47708, type: 3}
   deathAnimationTrigger: Death
   deathAnimationClipName: Anim_Monster_Death
   hitVoiceClip: {fileID: 0}
@@ -2868,6 +2871,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   audioSource: {fileID: 0}
+  shotVfxPrefab: {fileID: 4632848052670746736, guid: 6418db1393961184fbaaafd78077dc94, type: 3}
   shootClickSfx: {fileID: 8300000, guid: d173d64613301c04c80b4911b27aba42, type: 3}
   emptyClickSfx: {fileID: 0}
   reloadSfx: {fileID: 0}
@@ -3088,6 +3092,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   audioSource: {fileID: 0}
+  shotVfxPrefab: {fileID: 4632848052670746736, guid: 6418db1393961184fbaaafd78077dc94, type: 3}
   shootClickSfx: {fileID: 8300000, guid: d173d64613301c04c80b4911b27aba42, type: 3}
   emptyClickSfx: {fileID: 0}
   reloadSfx: {fileID: 8300000, guid: f1fb4348589dfaa4f8a14bdf67837d72, type: 3}
@@ -3258,6 +3263,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   audioSource: {fileID: 0}
+  shotVfxPrefab: {fileID: 4632848052670746736, guid: 6418db1393961184fbaaafd78077dc94, type: 3}
   shootClickSfx: {fileID: 8300000, guid: d173d64613301c04c80b4911b27aba42, type: 3}
   emptyClickSfx: {fileID: 0}
   reloadSfx: {fileID: 0}
@@ -3309,7 +3315,7 @@ MonoBehaviour:
   initialIdleDuration: 1
   deathAnimationTrigger: Death
   flattenAnimationTrigger: Flatten
-  flattenedSprite: {fileID: 21300000, guid: 9e3ce72ff0c92fb4791789e8b9287f37, type: 3}
+  deathVfxPrefab: {fileID: 3080909929795264892, guid: 6b819094670ec9b49b539fe150628b89, type: 3}
   targetSpriteRenderer: {fileID: 0}
 --- !u!1 &1917015094
 GameObject:
@@ -3693,6 +3699,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   audioSource: {fileID: 0}
+  shotVfxPrefab: {fileID: 4632848052670746736, guid: 6418db1393961184fbaaafd78077dc94, type: 3}
   shootClickSfx: {fileID: 8300000, guid: d173d64613301c04c80b4911b27aba42, type: 3}
   emptyClickSfx: {fileID: 0}
   reloadSfx: {fileID: 0}
