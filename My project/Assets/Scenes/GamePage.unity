@@ -1557,7 +1557,7 @@ MonoBehaviour:
   initialSpawnIntervalAdjustmentPerLevel: 1
   waveDurationAdjustmentPerLevel: 10
   intervalDecreaseAdjustmentPerLevel: -0.4
-  baseMonsterSpeed: 10
+  baseMonsterSpeed: 0
   monsterSpeedMultiplierPerLevel: 2
   spawnFromSceneCorners: 1
   spawnCamera: {fileID: 1920239694}
@@ -3285,7 +3285,7 @@ MonoBehaviour:
   offScreenDestroyBuffer: 0.1
   animator: {fileID: 0}
   walkVfxPrefab: {fileID: 5373978105671266317, guid: 93beecbec76191742b46de4087c47708, type: 3}
-  walkVfxLocalPosition: {x: 0, y: 0, z: 0}
+  walkVfxLocalPosition: {x: 3, y: 1, z: 0}
   deathAnimationTrigger: Death
   deathAnimationClipName: Anim_Monster_Death
   hitVoiceClip: {fileID: 0}
