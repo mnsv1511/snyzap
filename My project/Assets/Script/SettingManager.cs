@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public class SettingManager : MonoBehaviour
@@ -39,10 +41,18 @@ public class SettingManager : MonoBehaviour
     [SerializeField] private TMP_Dropdown crosshairDropdown;
 
     [Header("In-Game Settings Panel")]
-    [SerializeField] private GameObject settingsPanelRoot;
-    [SerializeField] private GameObject settingsPanelPrefab;
+    [FormerlySerializedAs("settingsPanelRoot")]
+    [SerializeField] private GameObject pausePanelRoot;
+    [SerializeField] private GameObject settingsPopUp;
     [SerializeField] private bool openWithEscape = true;
     [SerializeField] private bool pauseGameWhileOpen = true;
+
+    [Header("Pause Menu Buttons")]
+    [SerializeField] private Button playButton;
+    [SerializeField] private Button settingsButton;
+    [SerializeField] private Button mainMenuButton;
+    [SerializeField] private Button quitButton;
+    [SerializeField] private string mainMenuSceneName = "StartPage";
 
     private readonly List<ManagedAudioSource> managedMusicSources = new List<ManagedAudioSource>();
     private readonly List<ManagedAudioSource> managedSoundEffectSources = new List<ManagedAudioSource>();
@@ -80,6 +90,7 @@ public class SettingManager : MonoBehaviour
         LoadSettings();
         RegisterSerializedAudioSources();
         BindUiEvents();
+        BindPauseMenuEvents();
         PrepareSettingsPanel();
         ApplyAllSettings();
         RefreshUi();
@@ -123,6 +134,7 @@ public class SettingManager : MonoBehaviour
             Instance = null;
         }
 
+        UnbindPauseMenuEvents();
         UnbindUiEvents();
     }
 
@@ -184,6 +196,54 @@ public class SettingManager : MonoBehaviour
     public void CloseSettingsPanel()
     {
         SetSettingsPanelVisible(false);
+    }
+
+    public void OnPlayButtonClicked()
+    {
+        CloseSettingsPanel();
+    }
+
+    public void OnSettingsButtonClicked()
+    {
+        if (settingsPopUp == null)
+        {
+            Debug.LogWarning("SettingManager: settingsPopUp is not assigned");
+            return;
+        }
+
+        settingsPopUp.SetActive(true);
+    }
+
+    public void OnCloseSettingsPopUpClicked()
+    {
+        if (settingsPopUp == null)
+        {
+            return;
+        }
+
+        settingsPopUp.SetActive(false);
+    }
+
+    public void OnMainMenuButtonClicked()
+    {
+        if (string.IsNullOrWhiteSpace(mainMenuSceneName))
+        {
+            Debug.LogWarning("SettingManager: mainMenuSceneName is empty");
+            return;
+        }
+
+        RestoreRuntimeStateForSceneChange();
+        SceneManager.LoadScene(mainMenuSceneName);
+    }
+
+    public void OnQuitButtonClicked()
+    {
+        RestoreRuntimeStateForSceneChange();
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
     }
 
     public float GetScaledSoundEffectVolume(float baseVolume = 1f)
@@ -249,16 +309,21 @@ public class SettingManager : MonoBehaviour
     private void SetSettingsPanelVisible(bool visible, bool saveCursorState = true)
     {
         isSettingsOpen = visible;
-        Debug.Log($"SettingManager: SetSettingsPanelVisible({visible}). Panel root is {(settingsPanelRoot != null ? "assigned" : "NULL")}");
+        Debug.Log($"SettingManager: SetSettingsPanelVisible({visible}). Panel root is {(pausePanelRoot != null ? "assigned" : "NULL")}");
 
-        if (settingsPanelRoot != null)
+        if (pausePanelRoot != null)
         {
-            settingsPanelRoot.SetActive(visible);
+            pausePanelRoot.SetActive(visible);
             Debug.Log($"SettingManager: Panel activated: {visible}");
         }
         else
         {
-            Debug.LogWarning("SettingManager: settingsPanelRoot is not assigned");
+            Debug.LogWarning("SettingManager: pausePanelRoot is not assigned");
+        }
+
+        if (!visible && settingsPopUp != null)
+        {
+            settingsPopUp.SetActive(false);
         }
 
         if (pauseGameWhileOpen)
@@ -282,28 +347,10 @@ public class SettingManager : MonoBehaviour
 
     private void PrepareSettingsPanel()
     {
-        if (settingsPanelRoot != null)
+        if (pausePanelRoot != null)
         {
-            panelContainer = settingsPanelRoot.transform.parent;
-            return;
+            panelContainer = pausePanelRoot.transform.parent;
         }
-
-        if (settingsPanelPrefab == null)
-        {
-            return;
-        }
-
-        GameObject panelInstance = Instantiate(settingsPanelPrefab);
-        panelInstance.name = settingsPanelPrefab.name;
-
-        Canvas canvas = FindObjectOfType<Canvas>();
-        if (canvas != null)
-        {
-            panelInstance.transform.SetParent(canvas.transform, false);
-        }
-
-        settingsPanelRoot = panelInstance;
-        panelContainer = panelInstance.transform.parent;
     }
 
     private void ApplyCrosshair()
@@ -454,6 +501,52 @@ public class SettingManager : MonoBehaviour
         }
     }
 
+    private void BindPauseMenuEvents()
+    {
+        if (playButton != null)
+        {
+            playButton.onClick.AddListener(OnPlayButtonClicked);
+        }
+
+        if (settingsButton != null)
+        {
+            settingsButton.onClick.AddListener(OnSettingsButtonClicked);
+        }
+
+        if (mainMenuButton != null)
+        {
+            mainMenuButton.onClick.AddListener(OnMainMenuButtonClicked);
+        }
+
+        if (quitButton != null)
+        {
+            quitButton.onClick.AddListener(OnQuitButtonClicked);
+        }
+    }
+
+    private void UnbindPauseMenuEvents()
+    {
+        if (playButton != null)
+        {
+            playButton.onClick.RemoveListener(OnPlayButtonClicked);
+        }
+
+        if (settingsButton != null)
+        {
+            settingsButton.onClick.RemoveListener(OnSettingsButtonClicked);
+        }
+
+        if (mainMenuButton != null)
+        {
+            mainMenuButton.onClick.RemoveListener(OnMainMenuButtonClicked);
+        }
+
+        if (quitButton != null)
+        {
+            quitButton.onClick.RemoveListener(OnQuitButtonClicked);
+        }
+    }
+
     private void UnbindUiEvents()
     {
         if (masterVolumeSlider != null)
@@ -499,6 +592,28 @@ public class SettingManager : MonoBehaviour
             PopulateCrosshairDropdown();
             crosshairDropdown.SetValueWithoutNotify(CrosshairIndex);
         }
+    }
+
+    private void RestoreRuntimeStateForSceneChange()
+    {
+        if (pausePanelRoot != null)
+        {
+            pausePanelRoot.SetActive(false);
+        }
+
+        if (settingsPopUp != null)
+        {
+            settingsPopUp.SetActive(false);
+        }
+
+        isSettingsOpen = false;
+
+        if (pauseGameWhileOpen)
+        {
+            Time.timeScale = previousTimeScale <= 0f ? 1f : previousTimeScale;
+        }
+
+        Cursor.visible = false;
     }
 
     private void PopulateCrosshairDropdown()

@@ -3,9 +3,33 @@ using UnityEngine.SceneManagement;
 
 public class SceneLoader : MonoBehaviour
 {
+    [SerializeField] private GameObject settingsPopup;
+
     public void LoadScene(string sceneName)
     {
         SceneManager.LoadScene(sceneName);
+    }
+
+    public void LoadSettingsPopup()
+    {
+        if (settingsPopup == null)
+        {
+            Debug.LogWarning("SceneLoader: settingsPopup is not assigned.");
+            return;
+        }
+
+        settingsPopup.SetActive(true);
+    }
+
+    public void CloseSettingsPopup()
+    {
+        if (settingsPopup == null)
+        {
+            Debug.LogWarning("SceneLoader: settingsPopup is not assigned.");
+            return;
+        }
+
+        settingsPopup.SetActive(false);
     }
 
     public void LoadNextScene()
@@ -29,6 +53,10 @@ public class SceneLoader : MonoBehaviour
     public void QuitGame()
     {
         Debug.Log("SceneLoader: Quit requested.");
+        #if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
         Application.Quit();
+#endif
     }
 }

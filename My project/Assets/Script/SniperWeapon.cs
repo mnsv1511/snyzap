@@ -3,6 +3,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
+using System.Collections;
 
 public class SniperWeapon : MonoBehaviour
 {
@@ -32,9 +33,12 @@ public class SniperWeapon : MonoBehaviour
     [SerializeField] private AudioClip emptyClickSfx;
     [SerializeField] private AudioClip reloadSfx;
     [SerializeField] [Range(0f, 1f)] private float sfxVolume = 1f;
+    [SerializeField] private float reloadDelaySeconds = 1.5f;
+    [SerializeField] private Image reloadIndicatorImage;
 
     private Camera _camera;
     private bool _isScoped;
+    private bool _isReloading;
     private Sprite[] scopeSprites;
     private RectTransform _scopeOverlayRectTransform;
     private Canvas _scopeOverlayCanvas;
@@ -80,6 +84,7 @@ public class SniperWeapon : MonoBehaviour
 
         CurrentAmmo = currentAmmo;
         UpdateAmmoUI();
+        SetReloadIndicator(false);
 
         if (audioSource == null)
         {
@@ -152,6 +157,11 @@ public class SniperWeapon : MonoBehaviour
 
     private void Shoot()
     {
+        if (_isReloading)
+        {
+            return;
+        }
+
         PlaySfx(shootClickSfx);
 
         if (CurrentAmmo <= 0)
@@ -160,7 +170,8 @@ public class SniperWeapon : MonoBehaviour
             {
                 PlaySfx(emptyClickSfx);
             }
-            Debug.Log("SniperWeapon: No ammo. Press R to reload.");
+            Debug.Log("SniperWeapon: No ammo. Auto reloading.");
+            ReloadMagazine();
             return;
         }
 
@@ -203,9 +214,43 @@ public class SniperWeapon : MonoBehaviour
 
     public void ReloadMagazine()
     {
-        CurrentAmmo = MagazineSize;
+        if (_isReloading)
+        {
+            return;
+        }
+
+        if (CurrentAmmo >= MagazineSize)
+        {
+            return;
+        }
+
+        StartCoroutine(ReloadRoutine());
+    }
+
+    private IEnumerator ReloadRoutine()
+    {
+        _isReloading = true;
+        SetReloadIndicator(true);
         PlaySfx(reloadSfx);
+        Debug.Log($"SniperWeapon: Reload started. Waiting {reloadDelaySeconds:0.00}s");
+
+        float waitDuration = Mathf.Max(0f, reloadDelaySeconds);
+        yield return new WaitForSeconds(waitDuration);
+
+        CurrentAmmo = MagazineSize;
+        _isReloading = false;
+        SetReloadIndicator(false);
         Debug.Log($"SniperWeapon: Reloaded. Ammo {CurrentAmmo}/{MagazineSize}");
+    }
+
+    private void SetReloadIndicator(bool active)
+    {
+        if (reloadIndicatorImage == null)
+        {
+            return;
+        }
+
+        reloadIndicatorImage.gameObject.SetActive(active);
     }
 
     private void PlaySfx(AudioClip clip)

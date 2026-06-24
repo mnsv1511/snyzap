@@ -1045,6 +1045,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 7570751422163633360, guid: 1d7ea65b4bb228947a7a65500aaf0907, type: 3}
   m_PrefabInstance: {fileID: 373258416}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &411106768 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3596668546166103153, guid: 1d7ea65b4bb228947a7a65500aaf0907, type: 3}
+  m_PrefabInstance: {fileID: 373258416}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!1001 &442464385
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1454,7 +1465,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 0.0010375977, y: -9.7329}
+  m_AnchoredPosition: {x: 0.0009765625, y: -9.7329}
   m_SizeDelta: {x: 423.798, y: 859.3361}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &590783889
@@ -1589,6 +1600,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 7570751422163633360, guid: 1d7ea65b4bb228947a7a65500aaf0907, type: 3}
   m_PrefabInstance: {fileID: 634765925}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &634765927 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3596668546166103153, guid: 1d7ea65b4bb228947a7a65500aaf0907, type: 3}
+  m_PrefabInstance: {fileID: 634765925}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!1 &676698383
 GameObject:
   m_ObjectHideFlags: 0
@@ -1790,10 +1812,15 @@ MonoBehaviour:
   soundEffectVolumeSlider: {fileID: 1706532281}
   musicVolumeSlider: {fileID: 1269565985}
   crosshairDropdown: {fileID: 846172724}
-  settingsPanelRoot: {fileID: 913490484}
-  settingsPanelPrefab: {fileID: 0}
+  pausePanelRoot: {fileID: 1173128954}
+  settingsPopUp: {fileID: 913490484}
   openWithEscape: 1
   pauseGameWhileOpen: 1
+  playButton: {fileID: 634765927}
+  settingsButton: {fileID: 411106768}
+  mainMenuButton: {fileID: 1248378756}
+  quitButton: {fileID: 823594182}
+  mainMenuSceneName: StartPage
 --- !u!4 &710594088
 Transform:
   m_ObjectHideFlags: 0
@@ -2010,7 +2037,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9995b2313d39b945b89835ecabfe2b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameModeTimer
-  countdownSeconds: 30
+  countdownSeconds: 10
   timerText: {fileID: 1318149123}
   timePrefix: 'Time: '
   endCreditSceneName: EndCreditPage
@@ -2147,6 +2174,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 7570751422163633360, guid: 1d7ea65b4bb228947a7a65500aaf0907, type: 3}
   m_PrefabInstance: {fileID: 823594180}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &823594182 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3596668546166103153, guid: 1d7ea65b4bb228947a7a65500aaf0907, type: 3}
+  m_PrefabInstance: {fileID: 823594180}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!114 &846172724 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2600954315866347469, guid: b654e51865b297b48908417bc73a2226, type: 3}
@@ -3295,10 +3333,12 @@ MonoBehaviour:
     m_Bits: 4294967295
   audioSource: {fileID: 0}
   shotVfxPrefab: {fileID: 4632848052670746736, guid: 6418db1393961184fbaaafd78077dc94, type: 3}
-  shootClickSfx: {fileID: 8300000, guid: d173d64613301c04c80b4911b27aba42, type: 3}
+  shootClickSfx: {fileID: 8300000, guid: 8c6df5298b145904198d5a23d41bb0ab, type: 3}
   emptyClickSfx: {fileID: 0}
-  reloadSfx: {fileID: 0}
+  reloadSfx: {fileID: 8300000, guid: 210e955e94e7c3c4a8269d92d570e964, type: 3}
   sfxVolume: 1
+  reloadDelaySeconds: 1.5
+  reloadIndicatorImage: {fileID: 1095857384}
 --- !u!4 &1247643324
 Transform:
   m_ObjectHideFlags: 0
@@ -3424,6 +3464,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 7570751422163633360, guid: 1d7ea65b4bb228947a7a65500aaf0907, type: 3}
   m_PrefabInstance: {fileID: 1248378754}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1248378756 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3596668546166103153, guid: 1d7ea65b4bb228947a7a65500aaf0907, type: 3}
+  m_PrefabInstance: {fileID: 1248378754}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!1 &1249130307
 GameObject:
   m_ObjectHideFlags: 0
@@ -4210,7 +4261,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 35179202470324884, guid: b654e51865b297b48908417bc73a2226, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 112700725523533211, guid: b654e51865b297b48908417bc73a2226, type: 3}
       propertyPath: m_Name
@@ -4226,7 +4277,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2681251548008979359, guid: b654e51865b297b48908417bc73a2226, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3144181179942254380, guid: b654e51865b297b48908417bc73a2226, type: 3}
       propertyPath: m_Pivot.x
@@ -4330,19 +4381,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3956129168203727371, guid: b654e51865b297b48908417bc73a2226, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4786556472467606677, guid: b654e51865b297b48908417bc73a2226, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5031444100584846302, guid: b654e51865b297b48908417bc73a2226, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9181009739837560893, guid: b654e51865b297b48908417bc73a2226, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -4851,7 +4902,6 @@ RectTransform:
   - {fileID: 1560294556}
   - {fileID: 1173128955}
   - {fileID: 1792804837}
-  - {fileID: 2047657905}
   - {fileID: 1661497638}
   - {fileID: 527531059}
   - {fileID: 1172908447}
@@ -5320,10 +5370,12 @@ MonoBehaviour:
     m_Bits: 4294967295
   audioSource: {fileID: 0}
   shotVfxPrefab: {fileID: 4632848052670746736, guid: 6418db1393961184fbaaafd78077dc94, type: 3}
-  shootClickSfx: {fileID: 8300000, guid: d173d64613301c04c80b4911b27aba42, type: 3}
+  shootClickSfx: {fileID: 8300000, guid: 8c6df5298b145904198d5a23d41bb0ab, type: 3}
   emptyClickSfx: {fileID: 0}
-  reloadSfx: {fileID: 0}
+  reloadSfx: {fileID: 8300000, guid: 210e955e94e7c3c4a8269d92d570e964, type: 3}
   sfxVolume: 1
+  reloadDelaySeconds: 1.5
+  reloadIndicatorImage: {fileID: 1095857384}
 --- !u!4 &1693603705
 Transform:
   m_ObjectHideFlags: 0
@@ -5792,10 +5844,12 @@ MonoBehaviour:
     m_Bits: 4294967295
   audioSource: {fileID: 0}
   shotVfxPrefab: {fileID: 4632848052670746736, guid: 6418db1393961184fbaaafd78077dc94, type: 3}
-  shootClickSfx: {fileID: 8300000, guid: d173d64613301c04c80b4911b27aba42, type: 3}
+  shootClickSfx: {fileID: 8300000, guid: 8c6df5298b145904198d5a23d41bb0ab, type: 3}
   emptyClickSfx: {fileID: 0}
-  reloadSfx: {fileID: 8300000, guid: f1fb4348589dfaa4f8a14bdf67837d72, type: 3}
+  reloadSfx: {fileID: 8300000, guid: 210e955e94e7c3c4a8269d92d570e964, type: 3}
   sfxVolume: 1
+  reloadDelaySeconds: 1.5
+  reloadIndicatorImage: {fileID: 1095857384}
 --- !u!4 &1847303980
 Transform:
   m_ObjectHideFlags: 0
@@ -5987,7 +6041,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0.84002686}
+  m_AnchoredPosition: {x: 0, y: 0.8400879}
   m_SizeDelta: {x: 0.00012207031, y: -0.31079102}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1901727688
@@ -6039,10 +6093,12 @@ MonoBehaviour:
     m_Bits: 4294967295
   audioSource: {fileID: 0}
   shotVfxPrefab: {fileID: 4632848052670746736, guid: 6418db1393961184fbaaafd78077dc94, type: 3}
-  shootClickSfx: {fileID: 8300000, guid: d173d64613301c04c80b4911b27aba42, type: 3}
+  shootClickSfx: {fileID: 8300000, guid: 8c6df5298b145904198d5a23d41bb0ab, type: 3}
   emptyClickSfx: {fileID: 0}
-  reloadSfx: {fileID: 0}
+  reloadSfx: {fileID: 8300000, guid: 210e955e94e7c3c4a8269d92d570e964, type: 3}
   sfxVolume: 1
+  reloadDelaySeconds: 1.5
+  reloadIndicatorImage: {fileID: 1095857384}
 --- !u!4 &1901727690
 Transform:
   m_ObjectHideFlags: 0
@@ -6517,37 +6573,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &2047657904
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2047657905}
-  m_Layer: 0
-  m_Name: Setting
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!4 &2047657905
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2047657904}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1591118357}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &2117327650
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6654,10 +6679,12 @@ MonoBehaviour:
     m_Bits: 4294967295
   audioSource: {fileID: 0}
   shotVfxPrefab: {fileID: 4632848052670746736, guid: 6418db1393961184fbaaafd78077dc94, type: 3}
-  shootClickSfx: {fileID: 8300000, guid: d173d64613301c04c80b4911b27aba42, type: 3}
+  shootClickSfx: {fileID: 8300000, guid: 8c6df5298b145904198d5a23d41bb0ab, type: 3}
   emptyClickSfx: {fileID: 0}
-  reloadSfx: {fileID: 0}
+  reloadSfx: {fileID: 8300000, guid: 210e955e94e7c3c4a8269d92d570e964, type: 3}
   sfxVolume: 1
+  reloadDelaySeconds: 1.5
+  reloadIndicatorImage: {fileID: 1095857384}
 --- !u!4 &2136419303
 Transform:
   m_ObjectHideFlags: 0

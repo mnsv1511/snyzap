@@ -272,11 +272,6 @@ public class SpawnManager : MonoBehaviour
     {
         currentWave++;
 
-        if (currentLevel < Mathf.Max(0, totalLevels - 1))
-        {
-            currentLevel++;
-        }
-
         ApplyLevelSettings();
         waveTimer = 0f;
         spawnTimer = 0f;
