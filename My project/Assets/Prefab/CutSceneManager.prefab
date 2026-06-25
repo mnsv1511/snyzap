@@ -64,6 +64,8 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   skipButton: {fileID: 0}
+  advanceMode: 0
+  autoAdvanceDelay: 1.5
   clickCooldown: 0.5
   timeBeforeSkipAppears: 3
   pageTransitionDuration: 0.3
