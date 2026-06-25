@@ -4,6 +4,7 @@ using UnityEngine.SceneManagement;
 public class SceneLoader : MonoBehaviour
 {
     [SerializeField] private GameObject settingsPopup;
+    [SerializeField] private GameObject quitConfirmPopup;
 
     public void LoadScene(string sceneName)
     {
@@ -48,6 +49,28 @@ public class SceneLoader : MonoBehaviour
     public void ReloadCurrentScene()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    public void LoadQuitConfirmPopup()
+    {
+        if (quitConfirmPopup == null)
+        {
+            Debug.LogWarning("SceneLoader: quitConfirmPopup is not assigned.");
+            return;
+        }
+
+        quitConfirmPopup.SetActive(true);
+    }
+
+    public void CloseQuitConfirmPopup()
+    {
+        if (quitConfirmPopup == null)
+        {
+            Debug.LogWarning("SceneLoader: quitConfirmPopup is not assigned.");
+            return;
+        }
+
+        quitConfirmPopup.SetActive(false);
     }
 
     public void QuitGame()
