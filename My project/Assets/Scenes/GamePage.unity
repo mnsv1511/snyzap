@@ -2166,7 +2166,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9995b2313d39b945b89835ecabfe2b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameModeTimer
-  countdownSeconds: 10
+  countdownSeconds: 60
   timerText: {fileID: 1318149123}
   timePrefix: 'Time: '
   endCreditSceneName: EndCreditPage
@@ -3179,7 +3179,7 @@ MonoBehaviour:
   initialDelay: 1
   initialSpawnInterval: 1
   waveDuration: 10
-  intervalDecreasePerWave: 0.3
+  intervalDecreasePerWave: 0
   totalLevels: 3
   initialDelayAdjustmentPerLevel: -0.2
   initialSpawnIntervalAdjustmentPerLevel: 1
@@ -3558,7 +3558,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1247643323
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3595,7 +3595,7 @@ MonoBehaviour:
   emptyClickSfx: {fileID: 0}
   reloadSfx: {fileID: 8300000, guid: 210e955e94e7c3c4a8269d92d570e964, type: 3}
   sfxVolume: 1
-  reloadDelaySeconds: 1.5
+  reloadDelaySeconds: 0.8
   reloadIndicatorImage: {fileID: 1095857384}
 --- !u!4 &1247643324
 Transform:
@@ -5595,7 +5595,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1693603704
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5632,7 +5632,7 @@ MonoBehaviour:
   emptyClickSfx: {fileID: 0}
   reloadSfx: {fileID: 8300000, guid: 210e955e94e7c3c4a8269d92d570e964, type: 3}
   sfxVolume: 1
-  reloadDelaySeconds: 1.5
+  reloadDelaySeconds: 0.8
   reloadIndicatorImage: {fileID: 1095857384}
 --- !u!4 &1693603705
 Transform:
@@ -6106,7 +6106,7 @@ MonoBehaviour:
   emptyClickSfx: {fileID: 0}
   reloadSfx: {fileID: 8300000, guid: 210e955e94e7c3c4a8269d92d570e964, type: 3}
   sfxVolume: 1
-  reloadDelaySeconds: 1.5
+  reloadDelaySeconds: 0.8
   reloadIndicatorImage: {fileID: 1095857384}
 --- !u!4 &1847303980
 Transform:
@@ -6318,7 +6318,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1901727689
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6355,7 +6355,7 @@ MonoBehaviour:
   emptyClickSfx: {fileID: 0}
   reloadSfx: {fileID: 8300000, guid: 210e955e94e7c3c4a8269d92d570e964, type: 3}
   sfxVolume: 1
-  reloadDelaySeconds: 1.5
+  reloadDelaySeconds: 0.8
   reloadIndicatorImage: {fileID: 1095857384}
 --- !u!4 &1901727690
 Transform:
@@ -6904,7 +6904,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &2136419302
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6941,7 +6941,7 @@ MonoBehaviour:
   emptyClickSfx: {fileID: 0}
   reloadSfx: {fileID: 8300000, guid: 210e955e94e7c3c4a8269d92d570e964, type: 3}
   sfxVolume: 1
-  reloadDelaySeconds: 1.5
+  reloadDelaySeconds: 0.8
   reloadIndicatorImage: {fileID: 1095857384}
 --- !u!4 &2136419303
 Transform:
