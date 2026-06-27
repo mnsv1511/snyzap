@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class Vegetable : MonoBehaviour
 {
@@ -21,6 +22,11 @@ public class Vegetable : MonoBehaviour
     [SerializeField] private string deathAnimationTrigger = "Death";
     [SerializeField] private string deathAnimationStateName = "Dead";
     [SerializeField] private string flattenAnimationTrigger = "Flatten";
+    [SerializeField] private AudioSource sfxAudioSource;
+    [SerializeField] private AudioClip vegetableWalkClip;
+    [SerializeField] [Range(0f, 1f)] private float vegetableWalkVolume = 0.6f;
+    [SerializeField] private AudioClip vegetableFlatClip;
+    [SerializeField] [Range(0f, 1f)] private float vegetableFlatVolume = 1f;
     [SerializeField] private GameObject deathVfxPrefab;
     [SerializeField] private SpriteRenderer targetSpriteRenderer;
 
@@ -34,9 +40,14 @@ public class Vegetable : MonoBehaviour
     private float patrolLeftLimit;
     private float patrolRightLimit;
     private bool canMove = false;
+    private readonly List<AudioSource> registeredSoundEffectSources = new List<AudioSource>();
+    private bool isWalkSfxPlaying = false;
 
     private void Start()
     {
+        EnsureAudioSourceInitialized();
+        RegisterAudioSourcesForSettings();
+
         if (animator == null)
         {
             animator = GetComponent<Animator>();
@@ -71,6 +82,12 @@ public class Vegetable : MonoBehaviour
         StartCoroutine(BeginMovementAfterIdleDelay());
     }
 
+    private void OnDestroy()
+    {
+        UpdateWalkLoopSfx(false);
+        UnregisterAudioSourcesForSettings();
+    }
+
     private void FixedUpdate()
     {
         if (currentState != VegetableState.Alive) return;
@@ -83,6 +100,7 @@ public class Vegetable : MonoBehaviour
         if (!canMove)
         {
             rb.velocity = Vector2.zero;
+            UpdateWalkLoopSfx(false);
             return;
         }
 
@@ -105,6 +123,7 @@ public class Vegetable : MonoBehaviour
         }
 
         rb.velocity = movementDirection * movementSpeed;
+        UpdateWalkLoopSfx(rb.velocity.sqrMagnitude > 0.0001f);
         if (animator != null)
         {
             if (HasAnimatorBoolParameter(walkAnimationParam))
@@ -180,6 +199,8 @@ public class Vegetable : MonoBehaviour
         currentState = VegetableState.Flattened;
         canMove = false;
         rb.velocity = Vector2.zero;
+        UpdateWalkLoopSfx(false);
+        PlaySfxOneShot(vegetableFlatClip, vegetableFlatVolume);
 
         bool playedDeathAnimation = false;
         if (animator != null)
@@ -217,6 +238,7 @@ public class Vegetable : MonoBehaviour
 
         isDead = false;
         currentState = VegetableState.Alive;
+        UpdateWalkLoopSfx(false);
         InitializePatrolLimits();
         SelectNewDirection();
         this.enabled = true;
@@ -433,5 +455,113 @@ public class Vegetable : MonoBehaviour
         }
 
         Destroy(deathVfxInstance, 2f);
+    }
+
+    private void RegisterAudioSourcesForSettings()
+    {
+        if (SettingManager.Instance == null)
+        {
+            return;
+        }
+
+        AudioSource[] audioSources = GetComponentsInChildren<AudioSource>(true);
+        for (int i = 0; i < audioSources.Length; i++)
+        {
+            AudioSource source = audioSources[i];
+            if (source == null)
+            {
+                continue;
+            }
+
+            registeredSoundEffectSources.Add(source);
+            SettingManager.Instance.RegisterSoundEffectSource(source);
+        }
+    }
+
+    private void UnregisterAudioSourcesForSettings()
+    {
+        if (SettingManager.Instance == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < registeredSoundEffectSources.Count; i++)
+        {
+            AudioSource source = registeredSoundEffectSources[i];
+            if (source == null)
+            {
+                continue;
+            }
+
+            SettingManager.Instance.UnregisterSoundEffectSource(source);
+        }
+
+        registeredSoundEffectSources.Clear();
+    }
+
+    private void EnsureAudioSourceInitialized()
+    {
+        if (sfxAudioSource != null)
+        {
+            return;
+        }
+
+        sfxAudioSource = GetComponent<AudioSource>();
+    }
+
+    private void PlaySfxOneShot(AudioClip clip, float volume)
+    {
+        if (clip == null)
+        {
+            return;
+        }
+
+        float scaledVolume = SettingManager.Instance != null
+            ? SettingManager.Instance.GetScaledSoundEffectVolume(volume)
+            : volume;
+
+        if (sfxAudioSource != null)
+        {
+            sfxAudioSource.PlayOneShot(clip, scaledVolume);
+            return;
+        }
+
+        AudioSource.PlayClipAtPoint(clip, transform.position, scaledVolume);
+    }
+
+    private void UpdateWalkLoopSfx(bool shouldPlay)
+    {
+        if (sfxAudioSource == null || vegetableWalkClip == null)
+        {
+            isWalkSfxPlaying = false;
+            return;
+        }
+
+        if (!shouldPlay)
+        {
+            if (isWalkSfxPlaying)
+            {
+                sfxAudioSource.Stop();
+                isWalkSfxPlaying = false;
+            }
+
+            return;
+        }
+
+        float scaledVolume = SettingManager.Instance != null
+            ? SettingManager.Instance.GetScaledSoundEffectVolume(vegetableWalkVolume)
+            : vegetableWalkVolume;
+
+        if (isWalkSfxPlaying && sfxAudioSource.isPlaying)
+        {
+            sfxAudioSource.volume = scaledVolume;
+            return;
+        }
+
+        sfxAudioSource.clip = vegetableWalkClip;
+        sfxAudioSource.loop = true;
+        sfxAudioSource.volume = scaledVolume;
+        sfxAudioSource.Play();
+        isWalkSfxPlaying = true;
     }
 }

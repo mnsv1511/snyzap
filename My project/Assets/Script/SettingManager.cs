@@ -27,6 +27,8 @@ public class SettingManager : MonoBehaviour
     [Header("Audio Sources")]
     [SerializeField] private AudioSource[] musicSources;
     [SerializeField] private AudioSource[] soundEffectSources;
+    [SerializeField] private bool autoRegisterSceneAudioSources = true;
+    [SerializeField] private string[] musicSourceNameHints = { "music", "bgm", "theme", "ambient" };
 
     [Header("Crosshair")]
     [SerializeField] private string crosshairResourcesFolder = "Scope";
@@ -76,6 +78,7 @@ public class SettingManager : MonoBehaviour
     {
         if (Instance != null && Instance != this)
         {
+            Instance.AbsorbSceneBindings(this);
             Destroy(gameObject);
             return;
         }
@@ -89,6 +92,8 @@ public class SettingManager : MonoBehaviour
         LoadCrosshairSprites();
         LoadSettings();
         RegisterSerializedAudioSources();
+        AutoRegisterSceneAudioSources();
+        SceneManager.sceneLoaded += OnSceneLoaded;
         BindUiEvents();
         BindPauseMenuEvents();
         PrepareSettingsPanel();
@@ -133,6 +138,8 @@ public class SettingManager : MonoBehaviour
         {
             Instance = null;
         }
+
+        SceneManager.sceneLoaded -= OnSceneLoaded;
 
         UnbindPauseMenuEvents();
         UnbindUiEvents();
@@ -248,12 +255,12 @@ public class SettingManager : MonoBehaviour
 
     public float GetScaledSoundEffectVolume(float baseVolume = 1f)
     {
-        return Mathf.Clamp01(baseVolume) * MasterVolume * SoundEffectVolume;
+        return Mathf.Clamp01(baseVolume) * SoundEffectVolume;
     }
 
     public float GetScaledMusicVolume(float baseVolume = 1f)
     {
-        return Mathf.Clamp01(baseVolume) * MasterVolume * MusicVolume;
+        return Mathf.Clamp01(baseVolume) * MusicVolume;
     }
 
     public Sprite GetCurrentCrosshairSprite()
@@ -434,6 +441,162 @@ public class SettingManager : MonoBehaviour
         }
     }
 
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        RegisterSerializedAudioSources();
+        AutoRegisterSceneAudioSources();
+        ApplyAllSettings();
+        RefreshUi();
+        ApplyCursorStateForScene(scene.name);
+    }
+
+    private void AbsorbSceneBindings(SettingManager sceneManager)
+    {
+        if (sceneManager == null)
+        {
+            return;
+        }
+
+        UnbindPauseMenuEvents();
+        UnbindUiEvents();
+
+        // Scene-local references are reassigned so this persistent singleton can control the new scene's UI and audio.
+        musicSources = sceneManager.musicSources;
+        soundEffectSources = sceneManager.soundEffectSources;
+        autoRegisterSceneAudioSources = sceneManager.autoRegisterSceneAudioSources;
+
+        crosshairResourcesFolder = sceneManager.crosshairResourcesFolder;
+        crosshairPreviewImage = sceneManager.crosshairPreviewImage;
+        sniperWeapons = sceneManager.sniperWeapons;
+
+        masterVolumeSlider = sceneManager.masterVolumeSlider;
+        soundEffectVolumeSlider = sceneManager.soundEffectVolumeSlider;
+        musicVolumeSlider = sceneManager.musicVolumeSlider;
+        crosshairDropdown = sceneManager.crosshairDropdown;
+
+        pausePanelRoot = sceneManager.pausePanelRoot;
+        settingsPopUp = sceneManager.settingsPopUp;
+        openWithEscape = sceneManager.openWithEscape;
+        pauseGameWhileOpen = sceneManager.pauseGameWhileOpen;
+
+        playButton = sceneManager.playButton;
+        settingsButton = sceneManager.settingsButton;
+        mainMenuButton = sceneManager.mainMenuButton;
+        quitButton = sceneManager.quitButton;
+
+        if (!string.IsNullOrWhiteSpace(sceneManager.mainMenuSceneName))
+        {
+            mainMenuSceneName = sceneManager.mainMenuSceneName;
+        }
+
+        PrepareSettingsPanel();
+        SetSettingsPanelVisible(false, false);
+
+        RegisterSerializedAudioSources();
+        AutoRegisterSceneAudioSources();
+        BindUiEvents();
+        BindPauseMenuEvents();
+        ApplyAllSettings();
+        RefreshUi();
+    }
+
+    private void AutoRegisterSceneAudioSources()
+    {
+        if (!autoRegisterSceneAudioSources)
+        {
+            return;
+        }
+
+        RemoveNullManagedSources(managedMusicSources);
+        RemoveNullManagedSources(managedSoundEffectSources);
+
+        AudioSource[] allSources = FindObjectsOfType<AudioSource>(true);
+        for (int i = 0; i < allSources.Length; i++)
+        {
+            AudioSource source = allSources[i];
+            if (source == null || IsSourceManaged(source))
+            {
+                continue;
+            }
+
+            if (IsLikelyMusicSource(source))
+            {
+                RegisterAudioSource(source, managedMusicSources);
+            }
+            else
+            {
+                RegisterAudioSource(source, managedSoundEffectSources);
+            }
+        }
+    }
+
+    private bool IsLikelyMusicSource(AudioSource source)
+    {
+        if (source == null || !source.loop)
+        {
+            return false;
+        }
+
+        if (source.clip != null && source.clip.length >= 15f)
+        {
+            return true;
+        }
+
+        string sourceName = source.name;
+        string objectName = source.gameObject != null ? source.gameObject.name : string.Empty;
+        string mixerGroupName = source.outputAudioMixerGroup != null ? source.outputAudioMixerGroup.name : string.Empty;
+
+        for (int i = 0; i < musicSourceNameHints.Length; i++)
+        {
+            string hint = musicSourceNameHints[i];
+            if (string.IsNullOrWhiteSpace(hint))
+            {
+                continue;
+            }
+
+            if (sourceName.IndexOf(hint, System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                objectName.IndexOf(hint, System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                mixerGroupName.IndexOf(hint, System.StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool IsSourceManaged(AudioSource source)
+    {
+        for (int i = 0; i < managedMusicSources.Count; i++)
+        {
+            if (managedMusicSources[i].Source == source)
+            {
+                return true;
+            }
+        }
+
+        for (int i = 0; i < managedSoundEffectSources.Count; i++)
+        {
+            if (managedSoundEffectSources[i].Source == source)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static void RemoveNullManagedSources(List<ManagedAudioSource> targetList)
+    {
+        for (int i = targetList.Count - 1; i >= 0; i--)
+        {
+            if (targetList[i].Source == null)
+            {
+                targetList.RemoveAt(i);
+            }
+        }
+    }
+
     private void RegisterAudioSource(AudioSource source, List<ManagedAudioSource> targetList)
     {
         if (source == null)
@@ -611,6 +774,27 @@ public class SettingManager : MonoBehaviour
         if (pauseGameWhileOpen)
         {
             Time.timeScale = previousTimeScale <= 0f ? 1f : previousTimeScale;
+        }
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
+
+    private void ApplyCursorStateForScene(string sceneName)
+    {
+        if (!string.IsNullOrWhiteSpace(mainMenuSceneName) &&
+            string.Equals(sceneName, mainMenuSceneName, System.StringComparison.OrdinalIgnoreCase))
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            return;
+        }
+
+        if (isSettingsOpen)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            return;
         }
 
         Cursor.visible = false;

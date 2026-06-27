@@ -36,6 +36,9 @@ public class CutSceneManager : MonoBehaviour
 
     void Start()
     {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
         if (pages == null || pages.Count == 0)
         {
             Debug.LogError("No pages assigned to the Cutscene Manager!");

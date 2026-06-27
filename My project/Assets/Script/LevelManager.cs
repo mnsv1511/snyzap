@@ -30,6 +30,7 @@ public class LevelIntroUI : MonoBehaviour
     private void Start()
     {
         ResolveReferences();
+        ConfigureMissionTextRaycast();
 
         levelText.text = GetLevelDisplayText();
         levelText.gameObject.SetActive(true);
@@ -184,6 +185,8 @@ public class LevelIntroUI : MonoBehaviour
             return;
         }
 
+        levelText.raycastTarget = false;
+
         if (introHideCoroutine != null)
         {
             StopCoroutine(introHideCoroutine);
@@ -248,5 +251,16 @@ public class LevelIntroUI : MonoBehaviour
         {
             spawnManager = FindObjectOfType<SpawnManager>();
         }
+    }
+
+    private void ConfigureMissionTextRaycast()
+    {
+        if (levelText == null)
+        {
+            return;
+        }
+
+        // Let gameplay clicks pass through non-interactive mission text.
+        levelText.raycastTarget = false;
     }
 }

@@ -83,6 +83,10 @@ public class SpawnManager : MonoBehaviour
         // Wait for initial delay
         yield return new WaitForSeconds(currentInitialDelay);
         isSpawning = true;
+
+        // Spawn one batch immediately when spawning starts.
+        SpawnWaveMonsters();
+        spawnTimer = 0f;
     }
 
     private void Update()
@@ -98,11 +102,18 @@ public class SpawnManager : MonoBehaviour
             StartNewWave();
         }
 
-        // Spawn monsters based on interval
-        if (spawnTimer >= currentSpawnInterval)
+        // Spawn monsters based on interval; catch up if a frame takes longer than interval.
+        while (spawnTimer >= currentSpawnInterval)
         {
             SpawnWaveMonsters();
-            spawnTimer = 0f;
+            spawnTimer -= currentSpawnInterval;
+
+            // Safety break to avoid huge burst if timer spikes unexpectedly.
+            if (spawnTimer > currentSpawnInterval * 10f)
+            {
+                spawnTimer = 0f;
+                break;
+            }
         }
     }
 

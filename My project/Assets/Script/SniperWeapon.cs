@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
 using System.Collections;
+using System.Collections.Generic;
 
 public class SniperWeapon : MonoBehaviour
 {
@@ -42,6 +43,7 @@ public class SniperWeapon : MonoBehaviour
     private Sprite[] scopeSprites;
     private RectTransform _scopeOverlayRectTransform;
     private Canvas _scopeOverlayCanvas;
+    private static int s_lastProcessedShotFrame = -1;
     private const string AmmoTextFormat = "{0}/{1}";
 
     public int CurrentAmmo
@@ -131,6 +133,15 @@ public class SniperWeapon : MonoBehaviour
 
         HandleShootInput();
         HandleReloadInput();
+    }
+
+    private void LateUpdate()
+    {
+        if (SettingManager.IsOpen)
+        {
+            return;
+        }
+
         UpdateScopeOverlayPosition();
     }
 
@@ -138,13 +149,62 @@ public class SniperWeapon : MonoBehaviour
     {
         if (Mouse.current.leftButton.wasPressedThisFrame)
         {
-            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+            if (s_lastProcessedShotFrame == Time.frameCount)
             {
                 return;
             }
 
+            if (IsPointerOverBlockingUI())
+            {
+                return;
+            }
+
+            s_lastProcessedShotFrame = Time.frameCount;
             Shoot();
         }
+    }
+
+    private bool IsPointerOverBlockingUI()
+    {
+        if (EventSystem.current == null)
+        {
+            return false;
+        }
+
+        if (!EventSystem.current.IsPointerOverGameObject())
+        {
+            return false;
+        }
+
+        PointerEventData pointerData = new PointerEventData(EventSystem.current)
+        {
+            position = Mouse.current != null ? Mouse.current.position.ReadValue() : Vector2.zero
+        };
+
+        List<RaycastResult> results = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(pointerData, results);
+
+        for (int i = 0; i < results.Count; i++)
+        {
+            GameObject hitObject = results[i].gameObject;
+            if (hitObject == null)
+            {
+                continue;
+            }
+
+            if (hitObject.GetComponentInParent<Button>() != null ||
+                hitObject.GetComponentInParent<Selectable>() != null ||
+                hitObject.GetComponentInParent<TMP_InputField>() != null ||
+                hitObject.GetComponentInParent<InputField>() != null ||
+                hitObject.GetComponentInParent<Dropdown>() != null ||
+                hitObject.GetComponentInParent<Scrollbar>() != null)
+            {
+                return true;
+            }
+        }
+
+        // Pointer is over visual-only UI (e.g. text/image overlay), allow shooting.
+        return false;
     }
 
     private void HandleReloadInput()
@@ -508,8 +568,15 @@ public class SniperWeapon : MonoBehaviour
 
     private void UpdateScopeOverlayPosition()
     {
+        if (Mouse.current == null)
+        {
+            return;
+        }
+
         if (!_isScoped && !alwaysShowScope)
             return;
+
+        Vector2 mouseScreenPosition = Mouse.current.position.ReadValue();
 
         if (_scopeOverlayRectTransform == null && scopeOverlay != null)
         {
@@ -522,6 +589,12 @@ public class SniperWeapon : MonoBehaviour
 
         if (_scopeOverlayRectTransform != null)
         {
+            if (_scopeOverlayCanvas != null && _scopeOverlayCanvas.renderMode == RenderMode.ScreenSpaceOverlay)
+            {
+                _scopeOverlayRectTransform.position = mouseScreenPosition;
+                return;
+            }
+
             Vector2 uiPosition;
             Camera renderCamera = null;
             if (_scopeOverlayCanvas != null && _scopeOverlayCanvas.renderMode != RenderMode.ScreenSpaceOverlay)
@@ -537,7 +610,7 @@ public class SniperWeapon : MonoBehaviour
 
             if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
                 parentRect,
-                Mouse.current.position.ReadValue(),
+                mouseScreenPosition,
                 renderCamera,
                 out uiPosition))
             {
@@ -545,7 +618,7 @@ public class SniperWeapon : MonoBehaviour
             }
             else
             {
-                _scopeOverlayRectTransform.position = Mouse.current.position.ReadValue();
+                _scopeOverlayRectTransform.position = mouseScreenPosition;
             }
 
             return;
@@ -553,8 +626,7 @@ public class SniperWeapon : MonoBehaviour
 
         if (scopeOverlay != null && Camera.main != null)
         {
-            Vector3 mousePosition = Mouse.current.position.ReadValue();
-            Vector3 worldPos = Camera.main.ScreenToWorldPoint(new Vector3(mousePosition.x, mousePosition.y, Camera.main.nearClipPlane + 0.1f));
+            Vector3 worldPos = Camera.main.ScreenToWorldPoint(new Vector3(mouseScreenPosition.x, mouseScreenPosition.y, Camera.main.nearClipPlane + 0.1f));
             scopeOverlay.transform.position = worldPos;
         }
     }

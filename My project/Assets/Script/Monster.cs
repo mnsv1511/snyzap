@@ -16,6 +16,11 @@ public class Monster : MonoBehaviour
     [SerializeField] private Vector3 walkVfxLocalPosition = Vector3.zero;
     [SerializeField] private string deathAnimationTrigger = "Death";
     [SerializeField] private string deathAnimationClipName = "Anim_Monster_Death";
+    [SerializeField] private AudioSource sfxAudioSource;
+    [SerializeField] private AudioClip monsterWalkClip;
+    [SerializeField] [Range(0f, 1f)] private float monsterWalkVolume = 0.6f;
+    [SerializeField] private AudioClip monsterDeadClip;
+    [SerializeField] [Range(0f, 1f)] private float monsterDeadVolume = 1f;
     [SerializeField] private AudioClip hitVoiceClip;
     [SerializeField] [Range(0f, 1f)] private float hitVoiceVolume = 1f;
     [SerializeField] private bool destroyImmediatelyOnHit = false;
@@ -32,12 +37,16 @@ public class Monster : MonoBehaviour
     private Collider2D[] ownColliders;
     private GameObject walkVfxInstance;
     private Vector3 walkVfxBaseLocalScale = Vector3.one;
+    private readonly List<AudioSource> registeredSoundEffectSources = new List<AudioSource>();
+    private bool isWalkSfxPlaying = false;
 
     private static readonly List<Collider2D> activeMonsterColliders = new List<Collider2D>();
 
     private void Awake()
     {
         EnsureComponentsInitialized();
+        EnsureAudioSourceInitialized();
+        RegisterAudioSourcesForSettings();
     }
 
     private void Start()
@@ -47,7 +56,9 @@ public class Monster : MonoBehaviour
 
     private void OnDestroy()
     {
+        UpdateWalkLoopSfx(false);
         DestroyWalkVfx();
+        UnregisterAudioSourcesForSettings();
         UnregisterMonsterColliders();
     }
 
@@ -70,6 +81,7 @@ public class Monster : MonoBehaviour
             rb.velocity = exitDirection * movementSpeed;
             UpdateFacingDirection(exitDirection);
             UpdateWalkVfx(true);
+            UpdateWalkLoopSfx(rb.velocity.sqrMagnitude > 0.0001f);
 
             if (IsOutsideMainCamera(transform.position))
             {
@@ -82,6 +94,7 @@ public class Monster : MonoBehaviour
         if (!useFixedTarget && targetVegetable == null)
         {
             rb.velocity = Vector2.zero;
+            UpdateWalkLoopSfx(false);
             return;
         }
 
@@ -92,6 +105,7 @@ public class Monster : MonoBehaviour
         TryFlattenTargetByDistance();
         UpdateFacingDirection(movementDirection);
         UpdateWalkVfx(rb.velocity.sqrMagnitude > 0.0001f);
+        UpdateWalkLoopSfx(rb.velocity.sqrMagnitude > 0.0001f);
     }
 
     /// <summary>
@@ -157,10 +171,13 @@ public class Monster : MonoBehaviour
 
         isAlive = false;
         DestroyWalkVfx();
+        UpdateWalkLoopSfx(false);
         if (rb != null)
         {
             rb.velocity = Vector2.zero;
         }
+
+        PlayDetachedSfx(monsterDeadClip, monsterDeadVolume);
 
         if (hitVoiceClip != null)
         {
@@ -560,5 +577,127 @@ public class Monster : MonoBehaviour
 
             activeMonsterColliders.Remove(current);
         }
+    }
+
+    private void RegisterAudioSourcesForSettings()
+    {
+        if (SettingManager.Instance == null)
+        {
+            return;
+        }
+
+        AudioSource[] audioSources = GetComponentsInChildren<AudioSource>(true);
+        for (int i = 0; i < audioSources.Length; i++)
+        {
+            AudioSource source = audioSources[i];
+            if (source == null)
+            {
+                continue;
+            }
+
+            registeredSoundEffectSources.Add(source);
+            SettingManager.Instance.RegisterSoundEffectSource(source);
+        }
+    }
+
+    private void UnregisterAudioSourcesForSettings()
+    {
+        if (SettingManager.Instance == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < registeredSoundEffectSources.Count; i++)
+        {
+            AudioSource source = registeredSoundEffectSources[i];
+            if (source == null)
+            {
+                continue;
+            }
+
+            SettingManager.Instance.UnregisterSoundEffectSource(source);
+        }
+
+        registeredSoundEffectSources.Clear();
+    }
+
+    private void EnsureAudioSourceInitialized()
+    {
+        if (sfxAudioSource != null)
+        {
+            return;
+        }
+
+        sfxAudioSource = GetComponent<AudioSource>();
+    }
+
+    private void PlaySfxOneShot(AudioClip clip, float volume)
+    {
+        if (clip == null)
+        {
+            return;
+        }
+
+        float scaledVolume = SettingManager.Instance != null
+            ? SettingManager.Instance.GetScaledSoundEffectVolume(volume)
+            : volume;
+
+        if (sfxAudioSource != null)
+        {
+            sfxAudioSource.PlayOneShot(clip, scaledVolume);
+            return;
+        }
+
+        AudioSource.PlayClipAtPoint(clip, transform.position, scaledVolume);
+    }
+
+    private void PlayDetachedSfx(AudioClip clip, float volume)
+    {
+        if (clip == null)
+        {
+            return;
+        }
+
+        float scaledVolume = SettingManager.Instance != null
+            ? SettingManager.Instance.GetScaledSoundEffectVolume(volume)
+            : volume;
+
+        AudioSource.PlayClipAtPoint(clip, transform.position, scaledVolume);
+    }
+
+    private void UpdateWalkLoopSfx(bool shouldPlay)
+    {
+        if (sfxAudioSource == null || monsterWalkClip == null)
+        {
+            isWalkSfxPlaying = false;
+            return;
+        }
+
+        if (!shouldPlay)
+        {
+            if (isWalkSfxPlaying)
+            {
+                sfxAudioSource.Stop();
+                isWalkSfxPlaying = false;
+            }
+
+            return;
+        }
+
+        float scaledVolume = SettingManager.Instance != null
+            ? SettingManager.Instance.GetScaledSoundEffectVolume(monsterWalkVolume)
+            : monsterWalkVolume;
+
+        if (isWalkSfxPlaying && sfxAudioSource.isPlaying)
+        {
+            sfxAudioSource.volume = scaledVolume;
+            return;
+        }
+
+        sfxAudioSource.clip = monsterWalkClip;
+        sfxAudioSource.loop = true;
+        sfxAudioSource.volume = scaledVolume;
+        sfxAudioSource.Play();
+        isWalkSfxPlaying = true;
     }
 }
