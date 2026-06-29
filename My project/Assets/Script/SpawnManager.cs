@@ -8,6 +8,7 @@ public class SpawnManager : MonoBehaviour
     private static int pendingStartingLevel = 0;
 
     [SerializeField] private GameObject monsterPrefab;
+    private GameObject monsterSpawnSource;
 
     [SerializeField] private float spawnPerimeterRadius = 15f;
     [SerializeField] private Vector2 spawnPerimeterCenter = Vector2.zero;
@@ -57,6 +58,7 @@ public class SpawnManager : MonoBehaviour
         }
 
         activeInstance = this;
+        InitializeMonsterSpawnSource();
         ResetRuntimeState();
     }
 
@@ -119,7 +121,8 @@ public class SpawnManager : MonoBehaviour
 
     private void SpawnWaveMonsters()
     {
-        if (monsterPrefab == null)
+        GameObject spawnSource = GetMonsterSpawnSource();
+        if (spawnSource == null)
         {
             Debug.LogError("Monster prefab is not assigned!");
             return;
@@ -127,11 +130,11 @@ public class SpawnManager : MonoBehaviour
 
         for (int i = 0; i < monstersPerSpawn; i++)
         {
-            SpawnSingleMonster();
+            SpawnSingleMonster(spawnSource);
         }
     }
 
-    private void SpawnSingleMonster()
+    private void SpawnSingleMonster(GameObject spawnSource)
     {
         Vector3 spawnPosition;
         Vector3 targetPoint;
@@ -156,7 +159,11 @@ public class SpawnManager : MonoBehaviour
             useFixed = true;
         }
 
-        GameObject monsterInstance = Instantiate(monsterPrefab, spawnPosition, Quaternion.identity);
+        GameObject monsterInstance = Instantiate(spawnSource, spawnPosition, Quaternion.identity);
+        if (!monsterInstance.activeSelf)
+        {
+            monsterInstance.SetActive(true);
+        }
         Monster monsterScript = monsterInstance.GetComponent<Monster>();
 
         if (monsterScript != null)
@@ -170,6 +177,43 @@ public class SpawnManager : MonoBehaviour
         }
 
         totalMonstersSpawned++;
+    }
+
+    private void InitializeMonsterSpawnSource()
+    {
+        monsterSpawnSource = monsterPrefab;
+        if (monsterSpawnSource == null)
+        {
+            return;
+        }
+
+        if (!monsterSpawnSource.scene.IsValid())
+        {
+            return;
+        }
+
+        if (monsterSpawnSource.activeSelf)
+        {
+            monsterSpawnSource.SetActive(false);
+        }
+
+        Debug.LogWarning("SpawnManager: monsterPrefab references a scene instance. Assign the Monster prefab asset instead.", this);
+    }
+
+    private GameObject GetMonsterSpawnSource()
+    {
+        if (monsterSpawnSource != null)
+        {
+            return monsterSpawnSource;
+        }
+
+        if (monsterPrefab == null)
+        {
+            return null;
+        }
+
+        InitializeMonsterSpawnSource();
+        return monsterSpawnSource;
     }
 
     private Vector3 GetRandomPerimeterSpawnPosition()
