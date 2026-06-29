@@ -21,6 +21,7 @@ public class LevelIntroUI : MonoBehaviour
     [SerializeField] private float redirectDelay = 1.5f;
     [SerializeField] private bool autoFindVegetablesIfListEmpty = true;
     [SerializeField] private Vegetable[] trackedVegetables;
+    [SerializeField] private HealthPointManager healthPointManager;
     [SerializeField] private GameModeTimer gameModeTimer;
     [SerializeField] private SpawnManager spawnManager;
 
@@ -41,6 +42,12 @@ public class LevelIntroUI : MonoBehaviour
     {
         if (missionEnded)
         {
+            return;
+        }
+
+        if (healthPointManager != null && healthPointManager.CurrentHealthPoint <= 0)
+        {
+            StartCoroutine(FailMissionAndRedirect());
             return;
         }
 
@@ -250,6 +257,11 @@ public class LevelIntroUI : MonoBehaviour
         if (spawnManager == null)
         {
             spawnManager = FindObjectOfType<SpawnManager>();
+        }
+
+        if (healthPointManager == null)
+        {
+            healthPointManager = FindObjectOfType<HealthPointManager>();
         }
     }
 

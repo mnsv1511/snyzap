@@ -4,6 +4,8 @@ using System.Collections.Generic;
 
 public class Vegetable : MonoBehaviour
 {
+    public static event System.Action<Vegetable> VegetableDied;
+
     public enum VegetableState { Alive, Flattened }
     private VegetableState currentState = VegetableState.Alive;
     [SerializeField] private bool isDead = false;
@@ -224,6 +226,8 @@ public class Vegetable : MonoBehaviour
         }
 
         SpawnDeathVfx();
+
+        VegetableDied?.Invoke(this);
 
         // Disable movement
         this.enabled = false;
