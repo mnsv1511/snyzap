@@ -80,29 +80,20 @@ public class LevelIntroUI : MonoBehaviour
             yield return new WaitForSeconds(wait);
         }
 
-        bool isLastLevel = IsCurrentLevelLastLevel();
         SpawnManager.ResetPendingStartingLevel();
+        ReloadCurrentStage();
+    }
 
-        if (isLastLevel)
+    private void ReloadCurrentStage()
+    {
+        string currentSceneName = SceneManager.GetActiveScene().name;
+        if (!string.IsNullOrWhiteSpace(currentSceneName))
         {
-            if (!string.IsNullOrWhiteSpace(endCreditSceneName))
-            {
-                SceneManager.LoadScene(endCreditSceneName);
-            }
-            else
-            {
-                Debug.LogError("LevelIntroUI: End credit scene name is empty.", this);
-            }
-            yield break;
-        }
-
-        if (!string.IsNullOrWhiteSpace(startPageSceneName))
-        {
-            SceneManager.LoadScene(startPageSceneName);
+            SceneManager.LoadScene(currentSceneName);
         }
         else
         {
-            Debug.LogError("LevelIntroUI: Start page scene name is empty.", this);
+            Debug.LogError("LevelIntroUI: Active scene name is empty.", this);
         }
     }
 
