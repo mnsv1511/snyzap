@@ -2520,9 +2520,8 @@ MonoBehaviour:
   playButton: {fileID: 634765927}
   settingsButton: {fileID: 411106768}
   mainMenuButton: {fileID: 1248378756}
-  quitButton: {fileID: 823594182}
+  quitButton: {fileID: 0}
   mainMenuSceneName: StartPage
---- !u!4 &710594088
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
