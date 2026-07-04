@@ -2837,7 +2837,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9995b2313d39b945b89835ecabfe2b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameModeTimer
-  countdownSeconds: 10
+  countdownSeconds: 60
   timerText: {fileID: 1318149123}
   timePrefix: 'Time: '
   endCreditSceneName: EndCreditPage
@@ -5596,7 +5596,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4307608264943311382, guid: b654e51865b297b48908417bc73a2226, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 8.612122
+      value: 8.612061
       objectReference: {fileID: 0}
     - target: {fileID: 4434435001824855017, guid: b654e51865b297b48908417bc73a2226, type: 3}
       propertyPath: m_PresetInfoIsWorld
@@ -5611,8 +5611,12 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5731909609807716102, guid: b654e51865b297b48908417bc73a2226, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -175
+      objectReference: {fileID: 0}
+    - target: {fileID: 5731909609807716102, guid: b654e51865b297b48908417bc73a2226, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 10.000061
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 6539900342195734165, guid: b654e51865b297b48908417bc73a2226, type: 3}
       propertyPath: m_AnchoredPosition.x
@@ -5620,7 +5624,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6539900342195734165, guid: b654e51865b297b48908417bc73a2226, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 10.000061
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 9181009739837560893, guid: b654e51865b297b48908417bc73a2226, type: 3}
       propertyPath: m_AnchorMax.y
