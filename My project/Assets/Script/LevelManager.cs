@@ -100,6 +100,7 @@ public class LevelIntroUI : MonoBehaviour
     private IEnumerator CompleteMissionAndRedirect()
     {
         missionEnded = true;
+        TriggerVegetableMissionCompleteJump();
         ShowMissionText(missionCompleteText);
 
         float wait = Mathf.Max(0f, redirectDelay);
@@ -223,6 +224,30 @@ public class LevelIntroUI : MonoBehaviour
         }
 
         return hasAnyValidVegetable;
+    }
+
+    private void TriggerVegetableMissionCompleteJump()
+    {
+        if ((trackedVegetables == null || trackedVegetables.Length == 0) && autoFindVegetablesIfListEmpty)
+        {
+            trackedVegetables = FindObjectsOfType<Vegetable>();
+        }
+
+        if (trackedVegetables == null || trackedVegetables.Length == 0)
+        {
+            return;
+        }
+
+        for (int i = 0; i < trackedVegetables.Length; i++)
+        {
+            Vegetable vegetable = trackedVegetables[i];
+            if (vegetable == null || vegetable.IsDead)
+            {
+                continue;
+            }
+
+            vegetable.PlayMissionCompleteJumpAnimation();
+        }
     }
 
     private void ResolveReferences()

@@ -25,6 +25,8 @@ public class Vegetable : MonoBehaviour
     [SerializeField] private string deathAnimationTrigger = "Death";
     [SerializeField] private string deathAnimationStateName = "Dead";
     [SerializeField] private string flattenAnimationTrigger = "Flatten";
+    [SerializeField] private string missionCompleteJumpTrigger = "Jump";
+    [SerializeField] private string missionCompleteJumpStateName = "Jump";
     [FormerlySerializedAs("vegetableWalkClip")]
     [SerializeField] private AudioClip walkSfxClip;
     [FormerlySerializedAs("vegetableWalkVolume")]
@@ -272,6 +274,38 @@ public class Vegetable : MonoBehaviour
     public VegetableState CurrentState => currentState;
     public bool IsDead => isDead;
     public bool IsAlive => currentState == VegetableState.Alive;
+
+    public void PlayMissionCompleteJumpAnimation()
+    {
+        if (currentState != VegetableState.Alive || animator == null)
+        {
+            return;
+        }
+
+        // Freeze patrol so FixedUpdate does not immediately force Walk again.
+        canMove = false;
+        if (rb != null)
+        {
+            rb.velocity = Vector2.zero;
+        }
+        UpdateWalkLoopSfx(false);
+
+        if (HasAnimatorBoolParameter(walkAnimationParam))
+        {
+            animator.SetBool(walkAnimationParam, false);
+        }
+
+        bool playedJumpAnimation = TrySetAnimatorTrigger(missionCompleteJumpTrigger) ||
+                                   PlayStateIfExists(missionCompleteJumpStateName);
+
+        if (!playedJumpAnimation)
+        {
+            EnsureStatePlaying(walkStateName);
+            return;
+        }
+
+        animator.Update(0f);
+    }
 
     public void SetMovementSpeed(float speed)
     {

@@ -152,6 +152,8 @@ MonoBehaviour:
   deathAnimationTrigger: Death
   deathAnimationStateName: Dead
   flattenAnimationTrigger: Flatten
+  missionCompleteJumpTrigger: Jump
+  missionCompleteJumpStateName: Jump
   walkSfxClip: {fileID: 8300000, guid: 7b363b51b4e879941ab21668e0c84b2b, type: 3}
   walkSfxVolume: 0.05
   flattenSfxClip: {fileID: 8300000, guid: 383e5e60a6407b9449143dd5d1f0f3cd, type: 3}
@@ -2431,7 +2433,7 @@ MonoBehaviour:
   missionCompleteText: MISSION COMPLETE
   startPageSceneName: StartPage
   endCreditSceneName: EndCreditPage
-  redirectDelay: 2
+  redirectDelay: 3
   autoFindVegetablesIfListEmpty: 1
   trackedVegetables: []
   healthPointManager: {fileID: 0}
@@ -2752,6 +2754,8 @@ MonoBehaviour:
   deathAnimationTrigger: Death
   deathAnimationStateName: Dead
   flattenAnimationTrigger: Flatten
+  missionCompleteJumpTrigger: Jump
+  missionCompleteJumpStateName: Jump
   walkSfxClip: {fileID: 8300000, guid: 7b363b51b4e879941ab21668e0c84b2b, type: 3}
   walkSfxVolume: 0.05
   flattenSfxClip: {fileID: 8300000, guid: 383e5e60a6407b9449143dd5d1f0f3cd, type: 3}
@@ -4142,6 +4146,8 @@ MonoBehaviour:
   deathAnimationTrigger: Death
   deathAnimationStateName: Dead
   flattenAnimationTrigger: Flatten
+  missionCompleteJumpTrigger: Jump
+  missionCompleteJumpStateName: Jump
   walkSfxClip: {fileID: 8300000, guid: 7b363b51b4e879941ab21668e0c84b2b, type: 3}
   walkSfxVolume: 0.05
   flattenSfxClip: {fileID: 8300000, guid: 383e5e60a6407b9449143dd5d1f0f3cd, type: 3}
@@ -5367,6 +5373,8 @@ MonoBehaviour:
   deathAnimationTrigger: Death
   deathAnimationStateName: Dead
   flattenAnimationTrigger: Flatten
+  missionCompleteJumpTrigger: Jump
+  missionCompleteJumpStateName: Jump
   walkSfxClip: {fileID: 8300000, guid: 7b363b51b4e879941ab21668e0c84b2b, type: 3}
   walkSfxVolume: 0.05
   flattenSfxClip: {fileID: 8300000, guid: 383e5e60a6407b9449143dd5d1f0f3cd, type: 3}
@@ -7472,6 +7480,8 @@ MonoBehaviour:
   deathAnimationTrigger: Death
   deathAnimationStateName: Dead
   flattenAnimationTrigger: Flatten
+  missionCompleteJumpTrigger: Jump
+  missionCompleteJumpStateName: Jump
   walkSfxClip: {fileID: 8300000, guid: 7b363b51b4e879941ab21668e0c84b2b, type: 3}
   walkSfxVolume: 0.05
   flattenSfxClip: {fileID: 8300000, guid: 383e5e60a6407b9449143dd5d1f0f3cd, type: 3}
