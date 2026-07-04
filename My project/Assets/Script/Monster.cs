@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Serialization;
 
 public class Monster : MonoBehaviour
 {
@@ -16,13 +17,14 @@ public class Monster : MonoBehaviour
     [SerializeField] private Vector3 walkVfxLocalPosition = Vector3.zero;
     [SerializeField] private string deathAnimationTrigger = "Death";
     [SerializeField] private string deathAnimationClipName = "Anim_Monster_Death";
-    [SerializeField] private AudioSource sfxAudioSource;
-    [SerializeField] private AudioClip monsterWalkClip;
-    [SerializeField] [Range(0f, 1f)] private float monsterWalkVolume = 0.6f;
-    [SerializeField] private AudioClip monsterDeadClip;
-    [SerializeField] [Range(0f, 1f)] private float monsterDeadVolume = 1f;
-    [SerializeField] private AudioClip hitVoiceClip;
-    [SerializeField] [Range(0f, 1f)] private float hitVoiceVolume = 1f;
+    [FormerlySerializedAs("monsterWalkClip")]
+    [SerializeField] private AudioClip walkSfxClip;
+    [FormerlySerializedAs("monsterWalkVolume")]
+    [SerializeField] [Range(0f, 5f)] private float walkSfxVolume = 0.6f;
+    [FormerlySerializedAs("monsterDeadClip")]
+    [SerializeField] private AudioClip deathSfxClip;
+    [FormerlySerializedAs("monsterDeadVolume")]
+    [SerializeField] [Range(0f, 5f)] private float deathSfxVolume = 1f;
     [SerializeField] private bool destroyImmediatelyOnHit = false;
     [SerializeField] private float fadeOutDuration = 0.4f;
     [SerializeField] private bool passThroughOtherMonsters = true;
@@ -37,6 +39,8 @@ public class Monster : MonoBehaviour
     private Collider2D[] ownColliders;
     private GameObject walkVfxInstance;
     private Vector3 walkVfxBaseLocalScale = Vector3.one;
+    private AudioSource runtimeLoopSfxAudioSource;
+    private AudioSource oneShotSfxAudioSource;
     private readonly List<AudioSource> registeredSoundEffectSources = new List<AudioSource>();
     private bool isWalkSfxPlaying = false;
 
@@ -177,15 +181,7 @@ public class Monster : MonoBehaviour
             rb.velocity = Vector2.zero;
         }
 
-        PlayDetachedSfx(monsterDeadClip, monsterDeadVolume);
-
-        if (hitVoiceClip != null)
-        {
-            float scaledVolume = SettingManager.Instance != null
-                ? SettingManager.Instance.GetScaledSoundEffectVolume(hitVoiceVolume)
-                : hitVoiceVolume;
-            AudioSource.PlayClipAtPoint(hitVoiceClip, transform.position, scaledVolume);
-        }
+        PlayDetachedSfx(deathSfxClip, deathSfxVolume);
 
         bool canPlayDeathAnimation = animator != null &&
                                      (!string.IsNullOrWhiteSpace(deathAnimationClipName) ||
@@ -595,6 +591,11 @@ public class Monster : MonoBehaviour
                 continue;
             }
 
+            if (source == runtimeLoopSfxAudioSource || source == oneShotSfxAudioSource)
+            {
+                continue;
+            }
+
             registeredSoundEffectSources.Add(source);
             SettingManager.Instance.RegisterSoundEffectSource(source);
         }
@@ -623,12 +624,37 @@ public class Monster : MonoBehaviour
 
     private void EnsureAudioSourceInitialized()
     {
-        if (sfxAudioSource != null)
+        if (runtimeLoopSfxAudioSource != null && oneShotSfxAudioSource != null)
+        {
+            ConfigureSfxSource(runtimeLoopSfxAudioSource, allowLoop: true);
+            ConfigureSfxSource(oneShotSfxAudioSource, allowLoop: false);
+            return;
+        }
+
+        runtimeLoopSfxAudioSource = GetComponent<AudioSource>();
+        if (runtimeLoopSfxAudioSource == null)
+        {
+            runtimeLoopSfxAudioSource = gameObject.AddComponent<AudioSource>();
+        }
+
+        oneShotSfxAudioSource = gameObject.AddComponent<AudioSource>();
+
+        ConfigureSfxSource(runtimeLoopSfxAudioSource, allowLoop: true);
+        ConfigureSfxSource(oneShotSfxAudioSource, allowLoop: false);
+    }
+
+    private static void ConfigureSfxSource(AudioSource source, bool allowLoop)
+    {
+        if (source == null)
         {
             return;
         }
 
-        sfxAudioSource = GetComponent<AudioSource>();
+        source.playOnAwake = false;
+        source.loop = false;
+        source.spatialBlend = 0f;
+        source.mute = false;
+        source.volume = allowLoop ? source.volume : 1f;
     }
 
     private void PlaySfxOneShot(AudioClip clip, float volume)
@@ -642,13 +668,13 @@ public class Monster : MonoBehaviour
             ? SettingManager.Instance.GetScaledSoundEffectVolume(volume)
             : volume;
 
-        if (sfxAudioSource != null)
+        if (oneShotSfxAudioSource != null)
         {
-            sfxAudioSource.PlayOneShot(clip, scaledVolume);
+            oneShotSfxAudioSource.PlayOneShot(clip, scaledVolume);
             return;
         }
 
-        AudioSource.PlayClipAtPoint(clip, transform.position, scaledVolume);
+        PlayDetachedSfx(clip, volume);
     }
 
     private void PlayDetachedSfx(AudioClip clip, float volume)
@@ -662,12 +688,27 @@ public class Monster : MonoBehaviour
             ? SettingManager.Instance.GetScaledSoundEffectVolume(volume)
             : volume;
 
-        AudioSource.PlayClipAtPoint(clip, transform.position, scaledVolume);
+        if (runtimeLoopSfxAudioSource != null)
+        {
+            runtimeLoopSfxAudioSource.PlayOneShot(clip, scaledVolume);
+            return;
+        }
+
+        GameObject tempAudioObject = new GameObject("MonsterSfxDetached");
+        tempAudioObject.transform.position = transform.position;
+
+        AudioSource tempSource = tempAudioObject.AddComponent<AudioSource>();
+        tempSource.playOnAwake = false;
+        tempSource.spatialBlend = 0f;
+        tempSource.volume = 1f;
+        tempSource.PlayOneShot(clip, scaledVolume);
+
+        Destroy(tempAudioObject, Mathf.Max(1f, clip.length + 0.25f));
     }
 
     private void UpdateWalkLoopSfx(bool shouldPlay)
     {
-        if (sfxAudioSource == null || monsterWalkClip == null)
+        if (runtimeLoopSfxAudioSource == null || walkSfxClip == null)
         {
             isWalkSfxPlaying = false;
             return;
@@ -677,7 +718,7 @@ public class Monster : MonoBehaviour
         {
             if (isWalkSfxPlaying)
             {
-                sfxAudioSource.Stop();
+                runtimeLoopSfxAudioSource.Stop();
                 isWalkSfxPlaying = false;
             }
 
@@ -685,19 +726,19 @@ public class Monster : MonoBehaviour
         }
 
         float scaledVolume = SettingManager.Instance != null
-            ? SettingManager.Instance.GetScaledSoundEffectVolume(monsterWalkVolume)
-            : monsterWalkVolume;
+            ? SettingManager.Instance.GetScaledSoundEffectVolume(walkSfxVolume)
+            : walkSfxVolume;
 
-        if (isWalkSfxPlaying && sfxAudioSource.isPlaying)
+        if (isWalkSfxPlaying && runtimeLoopSfxAudioSource.isPlaying)
         {
-            sfxAudioSource.volume = scaledVolume;
+            runtimeLoopSfxAudioSource.volume = scaledVolume;
             return;
         }
 
-        sfxAudioSource.clip = monsterWalkClip;
-        sfxAudioSource.loop = true;
-        sfxAudioSource.volume = scaledVolume;
-        sfxAudioSource.Play();
+        runtimeLoopSfxAudioSource.clip = walkSfxClip;
+        runtimeLoopSfxAudioSource.loop = true;
+        runtimeLoopSfxAudioSource.volume = scaledVolume;
+        runtimeLoopSfxAudioSource.Play();
         isWalkSfxPlaying = true;
     }
 }

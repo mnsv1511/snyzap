@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Serialization;
 
 public class Vegetable : MonoBehaviour
 {
@@ -24,11 +25,14 @@ public class Vegetable : MonoBehaviour
     [SerializeField] private string deathAnimationTrigger = "Death";
     [SerializeField] private string deathAnimationStateName = "Dead";
     [SerializeField] private string flattenAnimationTrigger = "Flatten";
-    [SerializeField] private AudioSource sfxAudioSource;
-    [SerializeField] private AudioClip vegetableWalkClip;
-    [SerializeField] [Range(0f, 1f)] private float vegetableWalkVolume = 0.6f;
-    [SerializeField] private AudioClip vegetableFlatClip;
-    [SerializeField] [Range(0f, 1f)] private float vegetableFlatVolume = 1f;
+    [FormerlySerializedAs("vegetableWalkClip")]
+    [SerializeField] private AudioClip walkSfxClip;
+    [FormerlySerializedAs("vegetableWalkVolume")]
+    [SerializeField] [Range(0f, 5f)] private float walkSfxVolume = 0.6f;
+    [FormerlySerializedAs("vegetableFlatClip")]
+    [SerializeField] private AudioClip flattenSfxClip;
+    [FormerlySerializedAs("vegetableFlatVolume")]
+    [SerializeField] [Range(0f, 5f)] private float flattenSfxVolume = 1f;
     [SerializeField] private GameObject deathVfxPrefab;
     [SerializeField] private SpriteRenderer targetSpriteRenderer;
 
@@ -42,6 +46,8 @@ public class Vegetable : MonoBehaviour
     private float patrolLeftLimit;
     private float patrolRightLimit;
     private bool canMove = false;
+    private AudioSource runtimeLoopSfxAudioSource;
+    private AudioSource runtimeOneShotSfxAudioSource;
     private readonly List<AudioSource> registeredSoundEffectSources = new List<AudioSource>();
     private bool isWalkSfxPlaying = false;
 
@@ -202,7 +208,7 @@ public class Vegetable : MonoBehaviour
         canMove = false;
         rb.velocity = Vector2.zero;
         UpdateWalkLoopSfx(false);
-        PlaySfxOneShot(vegetableFlatClip, vegetableFlatVolume);
+        PlaySfxOneShot(flattenSfxClip, flattenSfxVolume);
 
         bool playedDeathAnimation = false;
         if (animator != null)
@@ -477,6 +483,11 @@ public class Vegetable : MonoBehaviour
                 continue;
             }
 
+            if (source == runtimeLoopSfxAudioSource || source == runtimeOneShotSfxAudioSource)
+            {
+                continue;
+            }
+
             registeredSoundEffectSources.Add(source);
             SettingManager.Instance.RegisterSoundEffectSource(source);
         }
@@ -505,12 +516,37 @@ public class Vegetable : MonoBehaviour
 
     private void EnsureAudioSourceInitialized()
     {
-        if (sfxAudioSource != null)
+        if (runtimeLoopSfxAudioSource != null && runtimeOneShotSfxAudioSource != null)
+        {
+            ConfigureSfxSource(runtimeLoopSfxAudioSource, allowLoop: true);
+            ConfigureSfxSource(runtimeOneShotSfxAudioSource, allowLoop: false);
+            return;
+        }
+
+        runtimeLoopSfxAudioSource = GetComponent<AudioSource>();
+        if (runtimeLoopSfxAudioSource == null)
+        {
+            runtimeLoopSfxAudioSource = gameObject.AddComponent<AudioSource>();
+        }
+
+        runtimeOneShotSfxAudioSource = gameObject.AddComponent<AudioSource>();
+
+        ConfigureSfxSource(runtimeLoopSfxAudioSource, allowLoop: true);
+        ConfigureSfxSource(runtimeOneShotSfxAudioSource, allowLoop: false);
+    }
+
+    private static void ConfigureSfxSource(AudioSource source, bool allowLoop)
+    {
+        if (source == null)
         {
             return;
         }
 
-        sfxAudioSource = GetComponent<AudioSource>();
+        source.playOnAwake = false;
+        source.loop = false;
+        source.spatialBlend = 0f;
+        source.mute = false;
+        source.volume = allowLoop ? source.volume : 1f;
     }
 
     private void PlaySfxOneShot(AudioClip clip, float volume)
@@ -524,18 +560,32 @@ public class Vegetable : MonoBehaviour
             ? SettingManager.Instance.GetScaledSoundEffectVolume(volume)
             : volume;
 
-        if (sfxAudioSource != null)
+        if (runtimeOneShotSfxAudioSource != null)
         {
-            sfxAudioSource.PlayOneShot(clip, scaledVolume);
+            runtimeOneShotSfxAudioSource.PlayOneShot(clip, scaledVolume);
             return;
         }
 
-        AudioSource.PlayClipAtPoint(clip, transform.position, scaledVolume);
+        PlayDetachedSfx(clip, scaledVolume);
+    }
+
+    private void PlayDetachedSfx(AudioClip clip, float scaledVolume)
+    {
+        GameObject tempAudioObject = new GameObject("VegetableSfxDetached");
+        tempAudioObject.transform.position = transform.position;
+
+        AudioSource tempSource = tempAudioObject.AddComponent<AudioSource>();
+        tempSource.playOnAwake = false;
+        tempSource.spatialBlend = 0f;
+        tempSource.volume = 1f;
+        tempSource.PlayOneShot(clip, scaledVolume);
+
+        Destroy(tempAudioObject, Mathf.Max(0.1f, clip.length));
     }
 
     private void UpdateWalkLoopSfx(bool shouldPlay)
     {
-        if (sfxAudioSource == null || vegetableWalkClip == null)
+        if (runtimeLoopSfxAudioSource == null || walkSfxClip == null)
         {
             isWalkSfxPlaying = false;
             return;
@@ -545,7 +595,7 @@ public class Vegetable : MonoBehaviour
         {
             if (isWalkSfxPlaying)
             {
-                sfxAudioSource.Stop();
+                runtimeLoopSfxAudioSource.Stop();
                 isWalkSfxPlaying = false;
             }
 
@@ -553,19 +603,19 @@ public class Vegetable : MonoBehaviour
         }
 
         float scaledVolume = SettingManager.Instance != null
-            ? SettingManager.Instance.GetScaledSoundEffectVolume(vegetableWalkVolume)
-            : vegetableWalkVolume;
+            ? SettingManager.Instance.GetScaledSoundEffectVolume(walkSfxVolume)
+            : walkSfxVolume;
 
-        if (isWalkSfxPlaying && sfxAudioSource.isPlaying)
+        if (isWalkSfxPlaying && runtimeLoopSfxAudioSource.isPlaying)
         {
-            sfxAudioSource.volume = scaledVolume;
+            runtimeLoopSfxAudioSource.volume = scaledVolume;
             return;
         }
 
-        sfxAudioSource.clip = vegetableWalkClip;
-        sfxAudioSource.loop = true;
-        sfxAudioSource.volume = scaledVolume;
-        sfxAudioSource.Play();
+        runtimeLoopSfxAudioSource.clip = walkSfxClip;
+        runtimeLoopSfxAudioSource.loop = true;
+        runtimeLoopSfxAudioSource.volume = scaledVolume;
+        runtimeLoopSfxAudioSource.Play();
         isWalkSfxPlaying = true;
     }
 }

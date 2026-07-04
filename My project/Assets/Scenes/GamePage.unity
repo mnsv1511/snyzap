@@ -152,11 +152,10 @@ MonoBehaviour:
   deathAnimationTrigger: Death
   deathAnimationStateName: Dead
   flattenAnimationTrigger: Flatten
-  sfxAudioSource: {fileID: 0}
-  vegetableWalkClip: {fileID: 0}
-  vegetableWalkVolume: 0.6
-  vegetableFlatClip: {fileID: 0}
-  vegetableFlatVolume: 1
+  walkSfxClip: {fileID: 8300000, guid: 7b363b51b4e879941ab21668e0c84b2b, type: 3}
+  walkSfxVolume: 0.05
+  flattenSfxClip: {fileID: 8300000, guid: 383e5e60a6407b9449143dd5d1f0f3cd, type: 3}
+  flattenSfxVolume: 1
   deathVfxPrefab: {fileID: 3080909929795264892, guid: 6b819094670ec9b49b539fe150628b89, type: 3}
   targetSpriteRenderer: {fileID: 0}
 --- !u!61 &68839849
@@ -2470,21 +2469,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &710594088
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 710594086}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &710594087
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2537,6 +2521,7 @@ MonoBehaviour:
   mainMenuButton: {fileID: 1248378756}
   quitButton: {fileID: 0}
   mainMenuSceneName: StartPage
+--- !u!4 &710594088
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2545,7 +2530,7 @@ Transform:
   m_GameObject: {fileID: 710594086}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 261.24002, y: 0, z: 571.9411}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2767,11 +2752,10 @@ MonoBehaviour:
   deathAnimationTrigger: Death
   deathAnimationStateName: Dead
   flattenAnimationTrigger: Flatten
-  sfxAudioSource: {fileID: 0}
-  vegetableWalkClip: {fileID: 0}
-  vegetableWalkVolume: 0.6
-  vegetableFlatClip: {fileID: 0}
-  vegetableFlatVolume: 1
+  walkSfxClip: {fileID: 8300000, guid: 7b363b51b4e879941ab21668e0c84b2b, type: 3}
+  walkSfxVolume: 0.05
+  flattenSfxClip: {fileID: 8300000, guid: 383e5e60a6407b9449143dd5d1f0f3cd, type: 3}
+  flattenSfxVolume: 1
   deathVfxPrefab: {fileID: 3080909929795264892, guid: 6b819094670ec9b49b539fe150628b89, type: 3}
   targetSpriteRenderer: {fileID: 0}
 --- !u!61 &791334800
@@ -2986,17 +2970,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 7570751422163633360, guid: 1d7ea65b4bb228947a7a65500aaf0907, type: 3}
   m_PrefabInstance: {fileID: 823594180}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &823594182 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 3596668546166103153, guid: 1d7ea65b4bb228947a7a65500aaf0907, type: 3}
-  m_PrefabInstance: {fileID: 823594180}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!114 &846172724 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2600954315866347469, guid: b654e51865b297b48908417bc73a2226, type: 3}
@@ -4169,11 +4142,10 @@ MonoBehaviour:
   deathAnimationTrigger: Death
   deathAnimationStateName: Dead
   flattenAnimationTrigger: Flatten
-  sfxAudioSource: {fileID: 0}
-  vegetableWalkClip: {fileID: 0}
-  vegetableWalkVolume: 0.6
-  vegetableFlatClip: {fileID: 0}
-  vegetableFlatVolume: 1
+  walkSfxClip: {fileID: 8300000, guid: 7b363b51b4e879941ab21668e0c84b2b, type: 3}
+  walkSfxVolume: 0.05
+  flattenSfxClip: {fileID: 8300000, guid: 383e5e60a6407b9449143dd5d1f0f3cd, type: 3}
+  flattenSfxVolume: 1
   deathVfxPrefab: {fileID: 3080909929795264892, guid: 6b819094670ec9b49b539fe150628b89, type: 3}
   targetSpriteRenderer: {fileID: 0}
 --- !u!61 &1215947383
@@ -5395,11 +5367,10 @@ MonoBehaviour:
   deathAnimationTrigger: Death
   deathAnimationStateName: Dead
   flattenAnimationTrigger: Flatten
-  sfxAudioSource: {fileID: 0}
-  vegetableWalkClip: {fileID: 0}
-  vegetableWalkVolume: 0.6
-  vegetableFlatClip: {fileID: 0}
-  vegetableFlatVolume: 1
+  walkSfxClip: {fileID: 8300000, guid: 7b363b51b4e879941ab21668e0c84b2b, type: 3}
+  walkSfxVolume: 0.05
+  flattenSfxClip: {fileID: 8300000, guid: 383e5e60a6407b9449143dd5d1f0f3cd, type: 3}
+  flattenSfxVolume: 1
   deathVfxPrefab: {fileID: 3080909929795264892, guid: 6b819094670ec9b49b539fe150628b89, type: 3}
   targetSpriteRenderer: {fileID: 0}
 --- !u!50 &1410544036
@@ -6427,13 +6398,10 @@ MonoBehaviour:
   walkVfxLocalPosition: {x: 3, y: 1, z: 0}
   deathAnimationTrigger: Death
   deathAnimationClipName: Anim_Monster_Death
-  sfxAudioSource: {fileID: 0}
-  monsterWalkClip: {fileID: 0}
-  monsterWalkVolume: 0.6
-  monsterDeadClip: {fileID: 0}
-  monsterDeadVolume: 1
-  hitVoiceClip: {fileID: 0}
-  hitVoiceVolume: 1
+  walkSfxClip: {fileID: 8300000, guid: aafc8094dc239b54da8e3cd150d2ab72, type: 3}
+  walkSfxVolume: 0.5
+  deathSfxClip: {fileID: 8300000, guid: 6cbc46a6783a88c42a0cb7602aae4341, type: 3}
+  deathSfxVolume: 3
   destroyImmediatelyOnHit: 0
   fadeOutDuration: 0.4
   passThroughOtherMonsters: 1
@@ -7504,11 +7472,10 @@ MonoBehaviour:
   deathAnimationTrigger: Death
   deathAnimationStateName: Dead
   flattenAnimationTrigger: Flatten
-  sfxAudioSource: {fileID: 0}
-  vegetableWalkClip: {fileID: 0}
-  vegetableWalkVolume: 0.6
-  vegetableFlatClip: {fileID: 0}
-  vegetableFlatVolume: 1
+  walkSfxClip: {fileID: 8300000, guid: 7b363b51b4e879941ab21668e0c84b2b, type: 3}
+  walkSfxVolume: 0.05
+  flattenSfxClip: {fileID: 8300000, guid: 383e5e60a6407b9449143dd5d1f0f3cd, type: 3}
+  flattenSfxVolume: 1
   deathVfxPrefab: {fileID: 3080909929795264892, guid: 6b819094670ec9b49b539fe150628b89, type: 3}
   targetSpriteRenderer: {fileID: 0}
 --- !u!61 &1915524511
