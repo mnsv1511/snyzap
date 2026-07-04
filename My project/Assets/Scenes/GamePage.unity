@@ -2837,7 +2837,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9995b2313d39b945b89835ecabfe2b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameModeTimer
-  countdownSeconds: 60
+  countdownSeconds: 10
   timerText: {fileID: 1318149123}
   timePrefix: 'Time: '
   endCreditSceneName: EndCreditPage

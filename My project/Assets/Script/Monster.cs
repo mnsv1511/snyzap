@@ -9,7 +9,7 @@ public class Monster : MonoBehaviour
     [SerializeField] private Transform targetVegetable;
     [SerializeField] private Vector3 fixedTargetPoint;
     [SerializeField] private bool useFixedTarget = false;
-    [SerializeField] private float flattenDistance = 0.25f;
+    [SerializeField] private float flattenDistance = 0.01f;
     [SerializeField] private float offScreenDestroyBuffer = 0.1f;
 
     [SerializeField] private Animator animator;
@@ -91,6 +91,12 @@ public class Monster : MonoBehaviour
             {
                 Destroy(gameObject);
             }
+            return;
+        }
+
+        TryFlattenAnyNearbyVegetable();
+        if (isExitingScreen)
+        {
             return;
         }
 
@@ -264,10 +270,42 @@ public class Monster : MonoBehaviour
         if (!isAlive) return;
 
         Vegetable vegetable = collision.GetComponent<Vegetable>();
-        if (vegetable != null && vegetable.IsAlive)
+        if (vegetable == null)
         {
-            vegetable.MarkDeadByMonster();
-            BeginExitAfterFlatten();
+            vegetable = collision.GetComponentInParent<Vegetable>();
+        }
+
+        if (vegetable != null)
+        {
+            TryFlattenVegetableIfInRange(vegetable);
+        }
+    }
+
+    private void OnTriggerStay2D(Collider2D collision)
+    {
+        if (!isAlive) return;
+
+        Vegetable vegetable = collision.GetComponent<Vegetable>();
+        if (vegetable == null)
+        {
+            vegetable = collision.GetComponentInParent<Vegetable>();
+        }
+
+        if (vegetable != null)
+        {
+            TryFlattenVegetableIfInRange(vegetable);
+        }
+    }
+
+    private void TryFlattenAnyNearbyVegetable()
+    {
+        Vegetable[] allVegetables = FindObjectsOfType<Vegetable>();
+        for (int i = 0; i < allVegetables.Length; i++)
+        {
+            if (TryFlattenVegetableIfInRange(allVegetables[i]))
+            {
+                return;
+            }
         }
     }
 
@@ -285,12 +323,68 @@ public class Monster : MonoBehaviour
             return;
         }
 
-        float distance = Vector2.Distance(transform.position, targetVegetable.position);
-        if (distance <= flattenDistance)
+        if (IsWithinFlattenDistance(targetVegetable))
         {
             vegetable.MarkDeadByMonster();
             BeginExitAfterFlatten();
         }
+    }
+
+    private bool TryFlattenVegetableIfInRange(Vegetable vegetable)
+    {
+        if (vegetable == null || !vegetable.IsAlive)
+        {
+            return false;
+        }
+
+        if (!IsWithinFlattenDistance(vegetable.transform))
+        {
+            return false;
+        }
+
+        vegetable.MarkDeadByMonster();
+        BeginExitAfterFlatten();
+        return true;
+    }
+
+    private bool IsWithinFlattenDistance(Transform vegetableTransform)
+    {
+        if (vegetableTransform == null)
+        {
+            return false;
+        }
+
+        float safeFlattenDistance = Mathf.Max(0f, flattenDistance);
+        Vector2 monsterPosition = rb != null ? rb.position : (Vector2)transform.position;
+
+        Collider2D[] vegetableColliders = vegetableTransform.GetComponentsInChildren<Collider2D>();
+        if (vegetableColliders != null && vegetableColliders.Length > 0)
+        {
+            float minSqrDistance = float.MaxValue;
+            for (int i = 0; i < vegetableColliders.Length; i++)
+            {
+                Collider2D col = vegetableColliders[i];
+                if (col == null || !col.enabled)
+                {
+                    continue;
+                }
+
+                Vector2 closestPoint = col.ClosestPoint(monsterPosition);
+                float sqrDistance = (closestPoint - monsterPosition).sqrMagnitude;
+                if (sqrDistance < minSqrDistance)
+                {
+                    minSqrDistance = sqrDistance;
+                }
+            }
+
+            if (minSqrDistance < float.MaxValue)
+            {
+                return minSqrDistance <= safeFlattenDistance * safeFlattenDistance;
+            }
+        }
+
+        float centerDistance = Vector2.Distance(monsterPosition, vegetableTransform.position);
+        return centerDistance <= safeFlattenDistance;
     }
 
     private void BeginExitAfterFlatten()

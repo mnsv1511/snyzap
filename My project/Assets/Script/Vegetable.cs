@@ -48,6 +48,7 @@ public class Vegetable : MonoBehaviour
     private float patrolLeftLimit;
     private float patrolRightLimit;
     private bool canMove = false;
+    private Coroutine beginMovementCoroutine;
     private AudioSource runtimeLoopSfxAudioSource;
     private AudioSource runtimeOneShotSfxAudioSource;
     private readonly List<AudioSource> registeredSoundEffectSources = new List<AudioSource>();
@@ -89,11 +90,17 @@ public class Vegetable : MonoBehaviour
         InitializePatrolLimits();
         SelectNewDirection();
 
-        StartCoroutine(BeginMovementAfterIdleDelay());
+        beginMovementCoroutine = StartCoroutine(BeginMovementAfterIdleDelay());
+    }
+
+    private void OnDisable()
+    {
+        StopBeginMovementCoroutine();
     }
 
     private void OnDestroy()
     {
+        StopBeginMovementCoroutine();
         UpdateWalkLoopSfx(false);
         UnregisterAudioSourcesForSettings();
     }
@@ -208,6 +215,7 @@ public class Vegetable : MonoBehaviour
         isDead = true;
         currentState = VegetableState.Flattened;
         canMove = false;
+        StopBeginMovementCoroutine();
         rb.velocity = Vector2.zero;
         UpdateWalkLoopSfx(false);
         PlaySfxOneShot(flattenSfxClip, flattenSfxVolume);
@@ -370,6 +378,13 @@ public class Vegetable : MonoBehaviour
             yield return new WaitForSeconds(delay);
         }
 
+        // A pending startup coroutine must never reactivate movement after death.
+        if (isDead || currentState != VegetableState.Alive || !isActiveAndEnabled)
+        {
+            beginMovementCoroutine = null;
+            yield break;
+        }
+
         canMove = true;
 
         if (animator != null)
@@ -381,6 +396,19 @@ public class Vegetable : MonoBehaviour
 
             PlayStateIfExists(walkStateName);
         }
+
+        beginMovementCoroutine = null;
+    }
+
+    private void StopBeginMovementCoroutine()
+    {
+        if (beginMovementCoroutine == null)
+        {
+            return;
+        }
+
+        StopCoroutine(beginMovementCoroutine);
+        beginMovementCoroutine = null;
     }
 
     private bool PlayStateIfExists(string stateName)
